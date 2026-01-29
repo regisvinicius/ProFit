@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1769726199763,
+      "tag": "0000_complex_gambit",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769726994157,
+      "tag": "0001_uneven_quicksilver",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769727383410,
+      "tag": "0002_mixed_valeria_richards",
+      "breakpoints": true
+    }
+  ]
+}

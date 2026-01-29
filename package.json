@@ -1,0 +1,21 @@
+{
+  "name": "profit",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "clean": "rm -rf node_modules apps/*/node_modules",
+    "dev": "pnpm --filter backend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "build": "pnpm --filter backend build",
+    "build:backend": "pnpm --filter backend build",
+    "lint": "pnpm --filter backend lint",
+    "lint:fix": "pnpm --filter backend run lint:fix",
+    "format": "pnpm --filter backend format",
+    "check": "pnpm --filter backend run lint",
+    "db:generate": "pnpm --filter backend db:generate",
+    "db:migrate": "pnpm --filter backend db:migrate",
+    "db:studio": "pnpm --filter backend db:studio",
+    "test": "pnpm --filter backend test",
+    "test:watch": "pnpm --filter backend run test:watch"
+  }
+}
