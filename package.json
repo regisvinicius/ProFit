@@ -3,19 +3,31 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "clean": "rm -rf node_modules apps/*/node_modules",
-    "dev": "pnpm --filter backend dev",
+    "clean": "rm -rf node_modules apps/backend/node_modules apps/frontend/node_modules",
+    "install:all": "pnpm install",
+    "fresh": "pnpm clean && pnpm install:all",
+    "dev": "concurrently -n be,fe -c blue,green \"pnpm dev:backend\" \"pnpm dev:frontend\"",
     "dev:backend": "pnpm --filter backend dev",
-    "build": "pnpm --filter backend build",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build": "pnpm -r build",
     "build:backend": "pnpm --filter backend build",
-    "lint": "pnpm --filter backend lint",
-    "lint:fix": "pnpm --filter backend run lint:fix",
-    "format": "pnpm --filter backend format",
-    "check": "pnpm --filter backend run lint",
+    "build:frontend": "pnpm --filter frontend build",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r run lint:fix",
+    "format": "pnpm -r run format",
+    "check": "pnpm lint",
+    "test": "pnpm -r test",
+    "test:backend": "pnpm --filter backend test",
+    "test:frontend": "pnpm --filter frontend test",
+    "test:watch": "pnpm --filter backend run test:watch",
+    "ci": "pnpm lint && pnpm build && pnpm test",
     "db:generate": "pnpm --filter backend db:generate",
     "db:migrate": "pnpm --filter backend db:migrate",
-    "db:studio": "pnpm --filter backend db:studio",
-    "test": "pnpm --filter backend test",
-    "test:watch": "pnpm --filter backend run test:watch"
+    "db:seed": "pnpm --filter backend db:seed",
+    "db:setup": "pnpm db:migrate && pnpm db:seed",
+    "db:studio": "pnpm --filter backend db:studio"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

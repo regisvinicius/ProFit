@@ -44,27 +44,52 @@ We have a **Fastify** API in **apps/backend/** with **TypeScript**, **Zod** (sin
 
 ---
 
+## Frontend (apps/frontend)
+
+- **Stack:** React 19, Vite, TypeScript, Tailwind CSS, TanStack Router, TanStack Query, Biome (README: React + Vite, Tailwind + shadcn/ui).
+- **Arquitetura:** `src/api/` (client, auth), `src/contexts/AuthContext`, `src/pages/` (Login, Home), `src/components/AuthLoader`, router com rotas `/` (home) e `/login`. Proxy `/v1` → backend em dev.
+- **Auth:** Login (email/senha) → POST /v1/auth/login; tokens em localStorage; GET /v1/auth/me na carga para restaurar sessão; Home exibe "Usuário X está logado" + botão Sair.
+
+| Command | What it does |
+|---------|------------------|
+| `pnpm dev:frontend` | Run frontend (Vite, port 5173). |
+| `pnpm build:frontend` | Build frontend. |
+
+---
+
 ## Commands (from repo root)
 
 | Command | What it does |
 |---------|------------------|
 | `pnpm install` | Install dependencies. |
 | `pnpm dev` | Run backend (tsx watch). |
-| `pnpm build` | Build backend (tsc). |
-| `pnpm lint` / `pnpm lint:fix` | Biome check / check + fix. |
-| `pnpm test` / `pnpm test:watch` | Run Vitest once / watch. |
+| `pnpm dev:frontend` | Run frontend (Vite). |
+| `pnpm build` | Build backend + frontend. |
+| `pnpm lint` / `pnpm lint:fix` | Biome check / check + fix (all apps). |
+| `pnpm test` / `pnpm test:watch` | Run Vitest once / watch (backend). |
 | `pnpm clean` | Remove all `node_modules` (root + apps). Run before a fresh `pnpm install`. |
 | `pnpm db:generate` | Generate Drizzle migrations (runs with tsx so schema `.ts` imports resolve). |
 | `pnpm db:migrate` | Run migrations (DB must be up). |
+| `pnpm db:seed` | Cria usuário de teste (test@gmail.com / test) se não existir. |
+| `pnpm db:setup` | db:migrate + db:seed (deixar DB pronto com usuário de teste). |
 
 ---
 
-## URLs (backend on port 3000)
+## URLs
 
-- **Liveness:** http://localhost:3000/v1/health  
-- **Readiness:** http://localhost:3000/v1/health/ready  
-- **Auth:** http://localhost:3000/v1/auth (register, login, refresh, logout, me)  
-- **Swagger UI:** http://localhost:3000/docs  
+- **Backend (3000):** Liveness `/v1/health`, Readiness `/v1/health/ready`, Auth `/v1/auth`, Swagger `/docs`.
+- **Frontend (5173):** http://localhost:5173 — Login em `/login`, Home em `/` (requer login).
+
+---
+
+## Rodar e testar (backend + frontend)
+
+1. **Postgres em pé** (ex.: `docker compose up -d db` ou Postgres local).
+2. **Backend com .env** (PORT, DATABASE_URL, CORS_ORIGINS, JWT_SECRET).
+3. **Setup do DB:** `pnpm db:setup` (migrações + seed do usuário test@gmail.com / test).
+4. **Terminal 1:** `pnpm dev:backend` (porta 3000).
+5. **Terminal 2:** `pnpm dev:frontend` (porta 5173).
+6. Abrir http://localhost:5173 → Login com **test@gmail.com** / **test** → Home mostra "Usuário test@gmail.com está logado".
 
 ---
 
