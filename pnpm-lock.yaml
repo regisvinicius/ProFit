@@ -41,6 +41,9 @@ importers:
       fastify:
         specifier: ^5.1.0
         version: 5.7.2
+      fastify-type-provider-zod:
+        specifier: ^4.0.2
+        version: 4.0.2(fastify@5.7.2)(zod@3.25.76)
       pg:
         specifier: ^8.13.1
         version: 8.17.2
@@ -66,9 +69,6 @@ importers:
       drizzle-kit:
         specifier: ^0.28.1
         version: 0.28.1
-      fastify-type-provider-zod:
-        specifier: ^4.0.2
-        version: 4.0.2(fastify@5.7.2)(zod@3.25.76)
       tsx:
         specifier: ^4.19.2
         version: 4.21.0

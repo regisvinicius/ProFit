@@ -10,13 +10,12 @@ export const loginBodySchema = z.object({
   password: z.string().min(1),
 });
 
-export const refreshBodySchema = z.object({
+const refreshTokenBodySchema = z.object({
   refreshToken: z.string().min(1).optional(),
 });
 
-export const logoutBodySchema = z.object({
-  refreshToken: z.string().min(1).optional(),
-});
+export const refreshBodySchema = refreshTokenBodySchema;
+export const logoutBodySchema = refreshTokenBodySchema;
 
 export const authUserSchema = z.object({
   id: z.number(),
