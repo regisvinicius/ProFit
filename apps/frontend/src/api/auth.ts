@@ -38,3 +38,14 @@ export async function me(accessToken: string): Promise<AuthUser> {
   }
   return res.json() as Promise<AuthUser>;
 }
+
+/** Revoke refresh token server-side. Best-effort; clears local state regardless. */
+export async function logout(refreshToken: string | null): Promise<void> {
+  if (!refreshToken) return;
+  await apiFetch("/auth/logout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+  // Ignore response: 204 = success; 4xx/5xx = token may already be invalid; still clear client.
+}

@@ -131,7 +131,7 @@ export async function refresh(
   refreshToken: string,
 ): Promise<AuthResponse> {
   const secret = app.config.JWT_SECRET;
-  if (!secret) throw new AppError(401, ERRORS.JWT_SECRET_NOT_CONFIGURED);
+  if (!secret) throw new AppError(500, ERRORS.JWT_SECRET_NOT_CONFIGURED);
 
   const tokenHash = hashToken(refreshToken);
   const now = new Date();

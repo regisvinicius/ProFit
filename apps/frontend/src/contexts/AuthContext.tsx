@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { me } from "../api/auth";
+import { logout as logoutApi, me } from "../api/auth";
 import type { AuthUser } from "../api/auth";
 
 const ACCESS_KEY = "profit_access_token";
@@ -62,9 +62,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
+    const refreshToken = localStorage.getItem(REFRESH_KEY);
     localStorage.removeItem(ACCESS_KEY);
     localStorage.removeItem(REFRESH_KEY);
     setState({ status: "unauthenticated" });
+    void logoutApi(refreshToken ?? null);
   }, []);
 
   const value = useMemo<AuthContextValue>(
