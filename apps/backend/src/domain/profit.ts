@@ -1,8 +1,3 @@
-/**
- * Profit intelligence: revenue, fee, cost of goods, profit, margin.
- * Pure functions — no Fastify, no DB. All amounts in same currency (number).
- */
-
 import type {
   ExtraCostInput,
   FeeRuleInput,
@@ -10,12 +5,10 @@ import type {
   SaleInput,
 } from "./entities.js";
 
-/** Revenue = quantity × unitPrice */
 export function computeRevenue(sale: SaleInput): number {
   return sale.quantity * sale.unitPrice;
 }
 
-/** Fee from rule: percent = (value/100) × revenue; fixed = value (per sale). */
 export function computeFeeFromRule(
   revenue: number,
   rule: FeeRuleInput,
@@ -24,7 +17,6 @@ export function computeFeeFromRule(
   return rule.value;
 }
 
-/** Cost of goods = quantity × unitCost (0 if no unitCost). */
 export function computeCostOfGoods(
   sale: SaleInput,
   product: ProductInput,
@@ -33,15 +25,10 @@ export function computeCostOfGoods(
   return sale.quantity * unitCost;
 }
 
-/** Sum of extra costs (e.g. shipping) attached to the sale. */
 export function totalExtraCosts(costs: ExtraCostInput[]): number {
   return costs.reduce((sum, c) => sum + c.amount, 0);
 }
 
-/**
- * Net profit = revenue − fee − costOfGoods − extraCosts.
- * Fee can be precomputed (sale.feeAmount) or from rule; here we use provided feeAmount.
- */
 export function computeProfit(
   revenue: number,
   feeAmount: number,
@@ -51,15 +38,11 @@ export function computeProfit(
   return revenue - feeAmount - costOfGoods - extraCosts;
 }
 
-/** Margin = (profit / revenue) × 100; 0 if revenue is 0. */
 export function computeMarginPercent(profit: number, revenue: number): number {
   if (revenue === 0) return 0;
   return (profit / revenue) * 100;
 }
 
-/**
- * All-in-one: from sale + product + fee amount + extra costs → revenue, profit, margin.
- */
 export function analyzeSale(
   sale: SaleInput,
   product: ProductInput,

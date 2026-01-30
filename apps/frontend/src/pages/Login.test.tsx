@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { AuthResponse } from "backend/schemas/auth";
 import { describe, expect, it, vi } from "vitest";
 import { login } from "../api/auth";
 import { Login } from "./Login";
@@ -44,11 +45,12 @@ describe("Login", () => {
   });
 
   it("calls login with email and password on submit", async () => {
-    mockLogin.mockResolvedValueOnce({
+    const mockAuthResponse: AuthResponse = {
       user: { id: 1, email: "a@b.com", createdAt: "" },
       accessToken: "at",
       refreshToken: "rt",
-    });
+    };
+    mockLogin.mockResolvedValueOnce(mockAuthResponse);
     const user = userEvent.setup();
     render(<Login />);
     await user.type(screen.getByLabelText(/email/i), "a@b.com");

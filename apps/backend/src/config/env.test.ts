@@ -1,25 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
-
-const envSchema = z.object({
-  PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
-  CORS_ORIGINS: z
-    .string()
-    .optional()
-    .transform((s) => (s ? s.split(",").map((o) => o.trim()) : [])),
-});
+import { envSchema } from "./env.js";
 
 describe("env config", () => {
-  it("parses PORT default", () => {
+  it("parses defaults with empty input", () => {
     const parsed = envSchema.safeParse({});
     expect(parsed.success).toBe(true);
     if (parsed.success) {
       expect(parsed.data.PORT).toBe(3000);
       expect(parsed.data.NODE_ENV).toBe("development");
       expect(parsed.data.CORS_ORIGINS).toEqual([]);
+      expect(parsed.data.JWT_ACCESS_TTL).toBe("15m");
+      expect(parsed.data.JWT_REFRESH_TTL).toBe("7d");
     }
   });
 
@@ -45,5 +36,17 @@ describe("env config", () => {
   it("rejects invalid PORT", () => {
     const parsed = envSchema.safeParse({ PORT: 99999 });
     expect(parsed.success).toBe(false);
+  });
+
+  it("accepts optional DATABASE_URL and JWT_SECRET", () => {
+    const parsed = envSchema.safeParse({
+      DATABASE_URL: "postgres://localhost/db",
+      JWT_SECRET: "a".repeat(32),
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.DATABASE_URL).toBe("postgres://localhost/db");
+      expect(parsed.data.JWT_SECRET).toBe("a".repeat(32));
+    }
   });
 });

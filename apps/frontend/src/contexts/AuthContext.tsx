@@ -1,3 +1,4 @@
+import type { AuthUser } from "backend/schemas/auth";
 import {
   type ReactNode,
   createContext,
@@ -7,8 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { logout as logoutApi, me } from "../api/auth";
-import type { AuthUser } from "../api/auth";
+import { logout as logoutApi, me, refresh } from "../api/auth";
 
 const ACCESS_KEY = "profit_access_token";
 const REFRESH_KEY = "profit_refresh_token";
@@ -45,10 +45,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then((user) => {
         setState({ status: "authenticated", user, accessToken: token });
       })
-      .catch(() => {
-        localStorage.removeItem(ACCESS_KEY);
-        localStorage.removeItem(REFRESH_KEY);
-        setState({ status: "unauthenticated" });
+      .catch(async () => {
+        const refreshToken = localStorage.getItem(REFRESH_KEY);
+        if (!refreshToken) {
+          localStorage.removeItem(ACCESS_KEY);
+          localStorage.removeItem(REFRESH_KEY);
+          setState({ status: "unauthenticated" });
+          return;
+        }
+        try {
+          const auth = await refresh(refreshToken);
+          localStorage.setItem(ACCESS_KEY, auth.accessToken);
+          localStorage.setItem(REFRESH_KEY, auth.refreshToken);
+          setState({
+            status: "authenticated",
+            user: auth.user,
+            accessToken: auth.accessToken,
+          });
+        } catch {
+          localStorage.removeItem(ACCESS_KEY);
+          localStorage.removeItem(REFRESH_KEY);
+          setState({ status: "unauthenticated" });
+        }
       });
   }, [state.status]);
 

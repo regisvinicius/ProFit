@@ -14,7 +14,6 @@ import { refreshTokens } from "./refreshTokens.js";
 import { sales } from "./sales.js";
 import { users } from "./users.js";
 
-/** Schema object passed to drizzle(); export type for Fastify augmentation. */
 export const schemaForDb = {
   users,
   refreshTokens,

@@ -1,16 +1,23 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { AuthUser } from "backend/schemas/auth";
 import { describe, expect, it, vi } from "vitest";
 import { Home } from "./Home";
 
 const mockLogout = vi.fn();
 const mockNavigate = vi.fn();
 
+const mockUser: AuthUser = {
+  id: 1,
+  email: "user@example.com",
+  createdAt: "",
+};
+
 vi.mock("../contexts/AuthContext", () => ({
   useAuth: () => ({
     state: {
       status: "authenticated",
-      user: { id: 1, email: "user@example.com", createdAt: "" },
+      user: mockUser,
       accessToken: "at",
     },
     logout: mockLogout,

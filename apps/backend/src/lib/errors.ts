@@ -1,9 +1,3 @@
-/**
- * Centralized HTTP errors and message constants.
- * Services throw AppError; setErrorHandler maps to response.
- */
-
-/** HTTP error with status and optional client code. */
 export class AppError extends Error {
   constructor(
     public readonly statusCode: number,
@@ -20,29 +14,25 @@ export function isAppError(err: unknown): err is AppError {
   return err instanceof AppError;
 }
 
-/** PostgreSQL unique_violation (e.g. duplicate email on insert). */
 export function isUniqueViolation(err: unknown): boolean {
   return (err as { code?: string })?.code === "23505";
 }
 
-/** Message constants (single source for i18n / consistency). */
 export const ERRORS = {
-  // Auth — client-facing
   EMAIL_ALREADY_REGISTERED: "Email already registered",
   INVALID_EMAIL_OR_PASSWORD: "Invalid email or password",
   REFRESH_TOKEN_REQUIRED: "refreshToken required in body",
   INVALID_OR_EXPIRED_REFRESH_TOKEN: "Invalid or expired refresh token",
   JWT_SECRET_NOT_CONFIGURED: "JWT_SECRET not configured",
   JWT_NOT_CONFIGURED: "JWT not configured",
+  INVALID_TOKEN: "Invalid token",
   USER_NOT_FOUND: "User not found",
-  // Internal (logged, not necessarily exposed as-is)
   INTERNAL: "Internal server error",
   INSERT_FAILED: "Insert failed",
 } as const;
 
 type FastifyError = Error & { statusCode?: number; validation?: unknown };
 
-/** Fastify error handler: AppError → statusCode + body; 4xx from Fastify (e.g. validation) → pass through; else 500. */
 export function createErrorHandler() {
   return function errorHandler(
     error: unknown,

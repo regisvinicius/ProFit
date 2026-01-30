@@ -1,8 +1,3 @@
-/**
- * Domain types for profit intelligence.
- * Plain types and numbers — no Fastify, no DB. Used by domain/profit.ts.
- */
-
 export type FeeType = "percent" | "fixed";
 
 export interface SaleInput {

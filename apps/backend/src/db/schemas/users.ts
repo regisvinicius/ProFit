@@ -6,10 +6,6 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-/**
- * Users: id is serial for now (may change with auth strategy).
- * passwordHash nullable = Google-only users; googleId set when linked to Google.
- */
 export const users = pgTable(
   "users",
   {

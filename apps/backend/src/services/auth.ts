@@ -9,10 +9,9 @@ import type { AuthResponse, AuthUser } from "../schemas/auth.js";
 const REFRESH_TOKEN_BYTES = 32;
 const TOKEN_HASH_ALG = "sha256";
 
-/** Parse TTL string (e.g. "7d", "15m") to milliseconds. Same format as JWT expiresIn. */
 function parseTtlMs(ttl: string): number {
   const match = /^(\d+)([smhd])$/.exec(ttl.trim().toLowerCase());
-  if (!match) return 7 * 24 * 60 * 60 * 1000; // fallback 7d
+  if (!match) return 7 * 24 * 60 * 60 * 1000;
   const n = Number(match[1]);
   const unit = match[2];
   const multipliers: Record<string, number> = {
@@ -144,33 +143,37 @@ export async function refresh(
 
   const tokenHash = hashToken(refreshToken);
   const now = new Date();
-  const [deleted] = await app.db
-    .delete(refreshTokens)
-    .where(
-      and(
-        eq(refreshTokens.tokenHash, tokenHash),
-        gt(refreshTokens.expiresAt, now),
-      ),
-    )
-    .returning({ id: refreshTokens.id, userId: refreshTokens.userId });
-  if (!deleted) {
-    throw new AppError(401, ERRORS.INVALID_OR_EXPIRED_REFRESH_TOKEN);
-  }
-
-  const user = await app.db.query.users.findFirst({
-    where: eq(users.id, deleted.userId),
-    columns: { id: true, email: true, createdAt: true },
-  });
-  if (!user) throw new AppError(404, ERRORS.USER_NOT_FOUND);
-
   const newRefreshToken = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
   const expiresAt = new Date(
     Date.now() + parseTtlMs(app.config.JWT_REFRESH_TTL),
   );
-  await app.db.insert(refreshTokens).values({
-    userId: user.id,
-    tokenHash: hashToken(newRefreshToken),
-    expiresAt,
+
+  const { user } = await app.db.transaction(async (tx) => {
+    const [deleted] = await tx
+      .delete(refreshTokens)
+      .where(
+        and(
+          eq(refreshTokens.tokenHash, tokenHash),
+          gt(refreshTokens.expiresAt, now),
+        ),
+      )
+      .returning({ id: refreshTokens.id, userId: refreshTokens.userId });
+    if (!deleted) {
+      throw new AppError(401, ERRORS.INVALID_OR_EXPIRED_REFRESH_TOKEN);
+    }
+
+    const userRow = await tx.query.users.findFirst({
+      where: eq(users.id, deleted.userId),
+      columns: { id: true, email: true, createdAt: true },
+    });
+    if (!userRow) throw new AppError(404, ERRORS.USER_NOT_FOUND);
+
+    await tx.insert(refreshTokens).values({
+      userId: userRow.id,
+      tokenHash: hashToken(newRefreshToken),
+      expiresAt,
+    });
+    return { user: userRow };
   });
 
   const accessToken = app.jwt.sign(

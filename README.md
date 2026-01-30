@@ -114,6 +114,7 @@ AUTHENTICATION
 - API-based authentication
 - Frontend consumes tokens via HTTP
 - Environment-based configuration
+- The user created by `pnpm db:seed` (test@gmail.com) is for local/testing only and must not be used in production.
 
 ==================================================
 BUSINESS DOMAIN (CORE)

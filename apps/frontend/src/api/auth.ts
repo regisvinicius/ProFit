@@ -1,20 +1,16 @@
+import type { AuthResponse, AuthUser } from "backend/schemas/auth";
+import { authResponseSchema, authUserSchema } from "backend/schemas/auth";
+import type { LoginBody } from "backend/schemas/auth";
+import { z } from "zod";
 import { apiFetch } from "./client";
 
-export interface AuthUser {
-  id: number;
-  email: string;
-  createdAt: string;
-}
+export type { AuthResponse, AuthUser, LoginBody };
 
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: AuthUser;
-}
+const errorBodySchema = z.object({ error: z.string().optional() });
 
-export interface LoginBody {
-  email: string;
-  password: string;
+function parseErrorBody(data: unknown, fallback: string): string {
+  const parsed = errorBodySchema.safeParse(data);
+  return parsed.success && parsed.data.error ? parsed.data.error : fallback;
 }
 
 export async function login(body: LoginBody): Promise<AuthResponse> {
@@ -23,23 +19,35 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error ?? "Login failed");
+    throw new Error(parseErrorBody(data, "Login failed"));
   }
-  return res.json() as Promise<AuthResponse>;
+  return authResponseSchema.parse(data);
 }
 
 export async function me(accessToken: string): Promise<AuthUser> {
   const res = await apiFetch("/auth/me", { token: accessToken });
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error ?? "Unauthorized");
+    throw new Error(parseErrorBody(data, "Unauthorized"));
   }
-  return res.json() as Promise<AuthUser>;
+  return authUserSchema.parse(data);
 }
 
-/** Revoke refresh token server-side. Best-effort; clears local state regardless. */
+export async function refresh(refreshToken: string): Promise<AuthResponse> {
+  const res = await apiFetch("/auth/refresh", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(parseErrorBody(data, "Refresh failed"));
+  }
+  return authResponseSchema.parse(data);
+}
+
 export async function logout(refreshToken: string | null): Promise<void> {
   if (!refreshToken) return;
   await apiFetch("/auth/logout", {
@@ -47,5 +55,4 @@ export async function logout(refreshToken: string | null): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken }),
   });
-  // Ignore response: 204 = success; 4xx/5xx = token may already be invalid; still clear client.
 }

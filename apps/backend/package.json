@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm",
+  "exports": {
+    "./schemas/*": "./src/schemas/*.ts"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",

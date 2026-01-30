@@ -6,6 +6,7 @@ import { users } from "../db/schemas/index.js";
 import { AppError, ERRORS } from "../lib/errors.js";
 import {
   authResponseSchema,
+  authUserSchema,
   loginBodySchema,
   logoutBodySchema,
   refreshBodySchema,
@@ -106,14 +107,8 @@ export const authRoutes: FastifyPluginAsyncZod = async (
       schema: {
         description: "Current user (requires Bearer token)",
         response: {
-          200: {
-            type: "object",
-            properties: {
-              id: { type: "number" },
-              email: { type: "string" },
-              createdAt: { type: "string" },
-            },
-          },
+          200: authUserSchema,
+          401: errorResponseSchema,
           404: errorResponseSchema,
           500: errorResponseSchema,
         },
@@ -121,8 +116,12 @@ export const authRoutes: FastifyPluginAsyncZod = async (
     },
     async (request, reply) => {
       const { sub } = request.user;
+      const userId = Number.parseInt(sub, 10);
+      if (Number.isNaN(userId)) {
+        throw new AppError(401, ERRORS.INVALID_TOKEN);
+      }
       const user = await app.db.query.users.findFirst({
-        where: eq(users.id, Number(sub)),
+        where: eq(users.id, userId),
         columns: { id: true, email: true, createdAt: true },
       });
       if (!user) throw new AppError(404, ERRORS.USER_NOT_FOUND);
