@@ -12,6 +12,7 @@ import {
   registerBodySchema,
 } from "../schemas/auth.js";
 import * as authService from "../services/auth.js";
+import { errorResponseSchema } from "../shared/schemas.js";
 import type { JwtPayload } from "../types/fastify.js";
 
 async function requireJwt(request: FastifyRequest, _reply: FastifyReply) {
@@ -32,7 +33,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (
         body: registerBodySchema,
         response: {
           200: authResponseSchema,
-          409: { type: "object", properties: { error: { type: "string" } } },
+          409: errorResponseSchema,
         },
       },
     },
@@ -51,7 +52,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (
         body: loginBodySchema,
         response: {
           200: authResponseSchema,
-          401: { type: "object", properties: { error: { type: "string" } } },
+          401: errorResponseSchema,
         },
       },
     },
@@ -70,8 +71,8 @@ export const authRoutes: FastifyPluginAsyncZod = async (
         body: refreshBodySchema,
         response: {
           200: authResponseSchema,
-          400: { type: "object", properties: { error: { type: "string" } } },
-          401: { type: "object", properties: { error: { type: "string" } } },
+          400: errorResponseSchema,
+          401: errorResponseSchema,
         },
       },
     },
@@ -114,17 +115,15 @@ export const authRoutes: FastifyPluginAsyncZod = async (
               createdAt: { type: "string" },
             },
           },
-          404: { type: "object", properties: { error: { type: "string" } } },
-          500: { type: "object", properties: { error: { type: "string" } } },
+          404: errorResponseSchema,
+          500: errorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      if (!request.jwtVerify)
-        throw new AppError(500, ERRORS.JWT_NOT_CONFIGURED);
-      const payload = await request.jwtVerify<JwtPayload>();
+      const { sub } = request.user;
       const user = await app.db.query.users.findFirst({
-        where: eq(users.id, Number(payload.sub)),
+        where: eq(users.id, Number(sub)),
         columns: { id: true, email: true, createdAt: true },
       });
       if (!user) throw new AppError(404, ERRORS.USER_NOT_FOUND);

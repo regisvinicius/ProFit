@@ -1,7 +1,7 @@
 import "dotenv/config";
 import argon2 from "argon2";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { type DatabaseSchema, schemaForDb, users } from "./schemas/index.js";
 

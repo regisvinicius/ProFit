@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import argon2 from "argon2";
-import { eq } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { refreshTokens, users } from "../db/schemas/index.js";
 import { AppError, ERRORS } from "../lib/errors.js";
@@ -8,6 +8,21 @@ import type { AuthResponse, AuthUser } from "../schemas/auth.js";
 
 const REFRESH_TOKEN_BYTES = 32;
 const TOKEN_HASH_ALG = "sha256";
+
+/** Parse TTL string (e.g. "7d", "15m") to milliseconds. Same format as JWT expiresIn. */
+function parseTtlMs(ttl: string): number {
+  const match = /^(\d+)([smhd])$/.exec(ttl.trim().toLowerCase());
+  if (!match) return 7 * 24 * 60 * 60 * 1000; // fallback 7d
+  const n = Number(match[1]);
+  const unit = match[2];
+  const multipliers: Record<string, number> = {
+    s: 1000,
+    m: 60 * 1000,
+    h: 60 * 60 * 1000,
+    d: 24 * 60 * 60 * 1000,
+  };
+  return n * (multipliers[unit] ?? multipliers.d);
+}
 
 function hashToken(token: string): string {
   return createHash(TOKEN_HASH_ALG).update(token).digest("hex");
@@ -50,7 +65,9 @@ export async function register(
   if (!user) throw new AppError(500, ERRORS.INSERT_FAILED);
 
   const refreshToken = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7d
+  const expiresAt = new Date(
+    Date.now() + parseTtlMs(app.config.JWT_REFRESH_TTL),
+  );
   await app.db.insert(refreshTokens).values({
     userId: user.id,
     tokenHash: hashToken(refreshToken),
@@ -88,7 +105,9 @@ export async function login(
   if (!ok) throw new AppError(401, ERRORS.INVALID_EMAIL_OR_PASSWORD);
 
   const refreshToken = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(
+    Date.now() + parseTtlMs(app.config.JWT_REFRESH_TTL),
+  );
   await app.db.insert(refreshTokens).values({
     userId: user.id,
     tokenHash: hashToken(refreshToken),
@@ -115,25 +134,30 @@ export async function refresh(
   if (!secret) throw new AppError(401, ERRORS.JWT_SECRET_NOT_CONFIGURED);
 
   const tokenHash = hashToken(refreshToken);
-  const [row] = await app.db
-    .select()
-    .from(refreshTokens)
-    .where(eq(refreshTokens.tokenHash, tokenHash))
-    .limit(1);
-  if (!row || new Date() > row.expiresAt) {
+  const now = new Date();
+  const [deleted] = await app.db
+    .delete(refreshTokens)
+    .where(
+      and(
+        eq(refreshTokens.tokenHash, tokenHash),
+        gt(refreshTokens.expiresAt, now),
+      ),
+    )
+    .returning({ id: refreshTokens.id, userId: refreshTokens.userId });
+  if (!deleted) {
     throw new AppError(401, ERRORS.INVALID_OR_EXPIRED_REFRESH_TOKEN);
   }
 
-  await app.db.delete(refreshTokens).where(eq(refreshTokens.id, row.id));
-
   const user = await app.db.query.users.findFirst({
-    where: eq(users.id, row.userId),
+    where: eq(users.id, deleted.userId),
     columns: { id: true, email: true, createdAt: true },
   });
   if (!user) throw new AppError(404, ERRORS.USER_NOT_FOUND);
 
   const newRefreshToken = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(
+    Date.now() + parseTtlMs(app.config.JWT_REFRESH_TTL),
+  );
   await app.db.insert(refreshTokens).values({
     userId: user.id,
     tokenHash: hashToken(newRefreshToken),
