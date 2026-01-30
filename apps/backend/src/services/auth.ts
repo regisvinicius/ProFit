@@ -3,7 +3,7 @@ import argon2 from "argon2";
 import { and, eq, gt } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { refreshTokens, users } from "../db/schemas/index.js";
-import { AppError, ERRORS } from "../lib/errors.js";
+import { AppError, ERRORS, isUniqueViolation } from "../lib/errors.js";
 import type { AuthResponse, AuthUser } from "../schemas/auth.js";
 
 const REFRESH_TOKEN_BYTES = 32;
@@ -54,15 +54,24 @@ export async function register(
   if (existing) throw new AppError(409, ERRORS.EMAIL_ALREADY_REGISTERED);
 
   const passwordHash = await argon2.hash(password);
-  const [user] = await app.db
-    .insert(users)
-    .values({ email, passwordHash })
-    .returning({
-      id: users.id,
-      email: users.email,
-      createdAt: users.createdAt,
-    });
-  if (!user) throw new AppError(500, ERRORS.INSERT_FAILED);
+  let user: { id: number; email: string; createdAt: Date };
+  try {
+    const [inserted] = await app.db
+      .insert(users)
+      .values({ email, passwordHash })
+      .returning({
+        id: users.id,
+        email: users.email,
+        createdAt: users.createdAt,
+      });
+    if (!inserted) throw new AppError(500, ERRORS.INSERT_FAILED);
+    user = inserted;
+  } catch (err) {
+    if (isUniqueViolation(err)) {
+      throw new AppError(409, ERRORS.EMAIL_ALREADY_REGISTERED);
+    }
+    throw err;
+  }
 
   const refreshToken = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
   const expiresAt = new Date(

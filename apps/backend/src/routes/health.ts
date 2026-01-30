@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyPluginOptions } from "fastify";
 import {
   healthResponseSchema,
+  readinessFailureResponseSchema,
   readinessResponseSchema,
 } from "../schemas/health.js";
 
@@ -34,7 +35,10 @@ export async function healthRoutes(
     schema: {
       description:
         "Readiness: alive and able to serve (DB check when available)",
-      response: { 200: readinessResponseSchema },
+      response: {
+        200: readinessResponseSchema,
+        503: readinessFailureResponseSchema,
+      },
     },
     handler: async (_request, reply) => {
       let db: "ok" | "not_checked" | "error" = "not_checked";
@@ -45,9 +49,17 @@ export async function healthRoutes(
           db = "error";
         }
       }
+      const timestamp = new Date().toISOString();
+      if (db === "error") {
+        return reply.status(503).send({
+          status: "error",
+          timestamp,
+          db,
+        });
+      }
       return reply.send({
         status: "ok",
-        timestamp: new Date().toISOString(),
+        timestamp,
         db,
       });
     },

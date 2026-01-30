@@ -20,6 +20,11 @@ export function isAppError(err: unknown): err is AppError {
   return err instanceof AppError;
 }
 
+/** PostgreSQL unique_violation (e.g. duplicate email on insert). */
+export function isUniqueViolation(err: unknown): boolean {
+  return (err as { code?: string })?.code === "23505";
+}
+
 /** Message constants (single source for i18n / consistency). */
 export const ERRORS = {
   // Auth — client-facing
