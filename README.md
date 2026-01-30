@@ -1,29 +1,29 @@
 ProfitOS
 Profit Intelligence for Small E-commerce Sellers
 
-ProfitOS é uma aplicação web Docker-first, criada para ajudar vendedores de e-commerce
-a entenderem o lucro líquido real, identificar produtos que parecem bons mas dão
-prejuízo e tomar decisões de preço com base em dados — não em achismo.
+ProfitOS is a Docker-first web application created to help e-commerce sellers
+understand their real net profit, identify products that appear profitable but
+actually generate losses, and make pricing decisions based on data — not guesswork.
 
-Este projeto foi desenvolvido como um projeto de portfólio sênior, com foco em
-arquitetura moderna, experiência de desenvolvimento (DX), automação e boas práticas
-de engenharia de software.
-
-==================================================
-OBJETIVO DO PROJETO
-==================================================
-
-- Demonstrar domínio de arquitetura full-stack moderna
-- Mostrar uso prático de Docker, CI/CD e Cloud
-- Construir um produto realista e potencialmente vendável
-- Priorizar decisões técnicas conscientes, não apenas features
+This project was developed as a senior-level portfolio project, with a strong focus
+on modern architecture, developer experience (DX), automation, and software
+engineering best practices.
 
 ==================================================
-VISÃO GERAL DA ARQUITETURA
+PROJECT GOALS
 ==================================================
 
-A aplicação segue uma arquitetura totalmente containerizada, com serviços isolados
-e comunicação via rede Docker.
+- Demonstrate proficiency in modern full-stack architecture
+- Showcase practical use of Docker, CI/CD, and Cloud infrastructure
+- Build a realistic and potentially sellable product
+- Prioritize conscious technical decisions over feature quantity
+
+==================================================
+ARCHITECTURE OVERVIEW
+==================================================
+
+The application follows a fully containerized architecture, with isolated services
+communicating through the Docker network.
 
 ┌─────────────┐      HTTP       ┌──────────────┐
 │  Frontend   │ ─────────────▶ │   Backend    │
@@ -37,143 +37,144 @@ e comunicação via rede Docker.
                                 │   Database   │
                                 └──────────────┘
 
-Todos os serviços rodam em containers Docker e são orquestrados via Docker Compose.
+All services run inside Docker containers and are orchestrated using Docker Compose.
 
 ==================================================
-COMPONENTES
+COMPONENTS
 ==================================================
 
 FRONTEND
 - React + Vite
-- UI focada em clareza de dados e tomada de decisão
-- Comunicação via API REST
-- Estilização com Tailwind CSS + shadcn/ui
-- Lint e formatação com Biome
+- UI focused on data clarity and decision-making
+- Communication via REST API
+- Styling with Tailwind CSS + shadcn/ui
+- Linting and formatting with Biome
 
 BACKEND
 - Node.js + Fastify + TypeScript
-- API REST
-- Arquitetura modular (routes, services, domain)
-- Camada de domínio isolada para cálculos financeiros
-- Configuração via variáveis de ambiente
-- Endpoint de health check
-- Validação de dados
-- Lint e formatação com Biome
+- REST API
+- Modular architecture (routes, services, domain)
+- Isolated domain layer for financial calculations
+- Configuration via environment variables
+- Health check endpoint
+- Data validation
+- Linting and formatting with Biome
 
 DATABASE
 - PostgreSQL
-- Rodando em container dedicado
-- Persistência via volumes Docker
-- Migrations versionadas
-- Comunicação via rede interna do Docker
+- Running in a dedicated container
+- Data persistence via Docker volumes
+- Versioned migrations
+- Communication through Docker internal network
 
 ==================================================
-INFRAESTRUTURA (DOCKER-FIRST)
+INFRASTRUCTURE (DOCKER-FIRST)
 ==================================================
 
-O projeto é desenhado para rodar da mesma forma em:
+The project is designed to run the same way in:
 
-- Ambiente local
-- Ambiente de produção (Oracle Cloud)
+- Local development environments
+- Production environments (Oracle Cloud)
 
-Nenhuma dependência é instalada diretamente na máquina host além de:
+No dependencies are installed directly on the host machine other than:
 - Docker
 - Docker Compose
 
-Containers principais:
+Main containers:
 - frontend
 - backend
 - db
 
 ==================================================
-CLOUD & DEPLOY
+CLOUD & DEPLOYMENT
 ==================================================
 
 Oracle Cloud Always Free
-- VM Linux (Ubuntu)
+- Linux VM (Ubuntu)
 - Docker + Docker Compose
-- Zero custo
-- Infra simples, reproduzível e documentada
+- Zero-cost infrastructure
+- Simple, reproducible, and well-documented setup
 
-DEPLOY AUTOMÁTICO (PREPARADO)
+AUTOMATED DEPLOYMENT (PREPARED)
 - GitHub Actions
-- Pipeline acionado por push na branch main
-- Build e deploy via SSH
+- Pipeline triggered by pushes to the main branch
+- Build and deploy via SSH
 - docker compose up -d --build
 
-OBSERVAÇÃO:
-O ambiente de produção está totalmente preparado, mas o deploy em produção
-não será executado inicialmente. O foco do projeto é arquitetura, automação
-e qualidade técnica, mantendo produção pronta para uso futuro.
+NOTE:
+The production environment is fully prepared, but production deployment will not
+be executed initially. The primary focus of the project is architecture, automation,
+and technical quality, keeping production ready for future use.
 
 ==================================================
-AUTENTICAÇÃO
+AUTHENTICATION
 ==================================================
 
 - JWT + Refresh Token
-- Autenticação baseada em API
-- Frontend consome tokens via HTTP
-- Configuração por ambiente
+- API-based authentication
+- Frontend consumes tokens via HTTP
+- Environment-based configuration
 
 ==================================================
-DOMÍNIO DO NEGÓCIO (CORE)
+BUSINESS DOMAIN (CORE)
 ==================================================
 
-ProfitOS não é um ERP.
+ProfitOS is not an ERP system.
 
-O foco principal do sistema é fornecer inteligência de lucro e suporte à decisão.
+The main focus of the application is to provide profit intelligence and
+decision-support capabilities.
 
-Principais responsabilidades do domínio:
-- Cálculo de lucro líquido real
-- Análise de margem
-- Simulação de preços
-- Identificação de produtos com baixa ou negativa rentabilidade
+Core domain responsibilities:
+- Real net profit calculation
+- Margin analysis
+- Price simulation
+- Identification of low or negative profitability products
 
-Entidades principais:
+Main entities:
 - Product
 - Sale
 - Cost
 - Channel
 - FeeRule
 
-O motor de cálculo financeiro é isolado do restante da aplicação.
+The financial calculation engine is isolated from the rest of the application.
 
 ==================================================
-QUALIDADE DE CÓDIGO
+CODE QUALITY
 ==================================================
 
-- Biome para lint e formatação
-- TypeScript em modo estrito
-- Padrões consistentes entre frontend e backend
-- Scripts automatizados para desenvolvimento
+- Biome for linting and formatting
+- Strict TypeScript configuration
+- Consistent standards across frontend and backend
+- Automated development scripts
 
 ==================================================
-TESTES (PLANEJADOS)
+TESTING (PLANNED)
 ==================================================
 
-- Testes de domínio (cálculos financeiros)
-- Testes de API (rotas críticas)
-- Testes focados em lógica, não apenas UI
+- Domain-level tests (financial calculations)
+- API tests (critical routes)
+- Tests focused on business logic, not only UI
 
 ==================================================
 ROADMAP (MVP)
 ==================================================
 
-1. Infra Docker funcionando
-2. Backend com health check
-3. Frontend conectado à API
-4. Autenticação
-5. Cadastro de produtos
-6. Motor de cálculo de lucro
-7. Relatórios básicos
-8. Pipeline de deploy automático
+1. Docker infrastructure up and running
+2. Backend with health check endpoint
+3. Frontend connected to the API
+4. Authentication
+5. Product management
+6. Profit calculation engine
+7. Basic reports
+8. Automated deployment pipeline
 
 ==================================================
-DECISÕES TÉCNICAS IMPORTANTES
+KEY TECHNICAL DECISIONS
 ==================================================
 
-- Docker desde o primeiro commit
-- Fastify pela performance, tipagem e ecossistema moderno
-- Biome pela simplicidade e excelente DX
-- Oracle Cloud Always Free pelo custo zero
-- Foco no domínio e decisões de negócio, não em CRUD genérico
+- Docker from the very first commit
+- Fastify for performance, strong typing, and modern ecosystem
+- Biome for simplicity and excellent developer experience
+- Oracle Cloud Always Free for zero-cost yet production-ready infrastructure
+- Focus on domain modeling and business decisions rather than generic CRUD
