@@ -23,7 +23,8 @@ services:
       NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-profit}
-      JWT_SECRET: ${JWT_SECRET:-your-secret-min-32-chars-change-in-production}
+      # JWT_SECRET must be set in .env or host env (no default to avoid committing secrets)
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "3000:3000"
     depends_on:
