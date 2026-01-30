@@ -77,9 +77,8 @@ export const authRoutes: FastifyPluginAsyncZod = async (
       },
     },
     async (request, reply) => {
-      const { refreshToken: token } = request.body;
-      if (!token) throw new AppError(400, ERRORS.REFRESH_TOKEN_REQUIRED);
-      const result = await authService.refresh(app, token);
+      const { refreshToken } = request.body;
+      const result = await authService.refresh(app, refreshToken);
       return reply.send(result);
     },
   );
