@@ -27,7 +27,7 @@ await app.register(fastifyHelmet, {
   contentSecurityPolicy: false,
 });
 await app.register(fastifyCors, {
-  origin: env.CORS_ORIGINS.length > 0 ? env.CORS_ORIGINS : true,
+  origin: env.CORS_ORIGINS.length > 0 ? env.CORS_ORIGINS : false,
 });
 
 await app.register(fastifySwagger, {
