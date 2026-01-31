@@ -1,4 +1,7 @@
-export const errorResponseSchema = {
-  type: "object",
-  properties: { error: { type: "string" } },
-} as const;
+import { z } from "zod";
+
+export const errorResponseSchema = z.object({
+  error: z.string(),
+});
+
+export type ErrorResponse = z.infer<typeof errorResponseSchema>;
