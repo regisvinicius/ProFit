@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { AppError, ERRORS, isUniqueViolation } from "../../src/lib/errors.js";
-import { parseUserIdFromSub, register } from "../../src/services/auth.js";
+import {
+  normalizeEmail,
+  parseTtlMs,
+  parseUserIdFromSub,
+  register,
+} from "../../src/services/auth.js";
 
 type RegisterApp = Parameters<typeof register>[0];
 type RegisterTx = Parameters<
@@ -20,6 +25,32 @@ const mockApp = {
   },
   jwt: { sign: vi.fn().mockReturnValue("access-token") },
 } as unknown as RegisterApp;
+
+describe("parseTtlMs", () => {
+  it("returns ms for valid s|m|h|d format", () => {
+    expect(parseTtlMs("30s")).toBe(30_000);
+    expect(parseTtlMs("15m")).toBe(15 * 60 * 1000);
+    expect(parseTtlMs("24h")).toBe(24 * 60 * 60 * 1000);
+    expect(parseTtlMs("7d")).toBe(7 * 24 * 60 * 60 * 1000);
+    expect(parseTtlMs("  7D  ")).toBe(7 * 24 * 60 * 60 * 1000);
+  });
+
+  it("throws on invalid TTL format", () => {
+    expect(() => parseTtlMs("30days")).toThrow(/Invalid JWT TTL format/);
+    expect(() => parseTtlMs("1 week")).toThrow(/Invalid JWT TTL format/);
+    expect(() => parseTtlMs("invalid")).toThrow(/Invalid JWT TTL format/);
+    expect(() => parseTtlMs("")).toThrow(/Invalid JWT TTL format/);
+  });
+});
+
+describe("normalizeEmail", () => {
+  it("returns trimmed lowercase email", () => {
+    expect(normalizeEmail("  User@Example.com  ")).toBe("user@example.com");
+    expect(normalizeEmail("AlreadyLower@test.com")).toBe(
+      "alreadylower@test.com",
+    );
+  });
+});
 
 describe("register", () => {
   it("throws 409 when insert fails with unique_violation (race condition)", async () => {

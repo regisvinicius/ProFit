@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import argon2 from "argon2";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { refreshTokens, users } from "../db/schemas/index.js";
 import { AppError, ERRORS, isUniqueViolation } from "../lib/errors.js";
@@ -9,9 +9,15 @@ import type { AuthResponse, AuthUser } from "../schemas/auth.js";
 const REFRESH_TOKEN_BYTES = 32;
 const TOKEN_HASH_ALG = "sha256";
 
-function parseTtlMs(ttl: string): number {
-  const match = /^(\d+)([smhd])$/.exec(ttl.trim().toLowerCase());
-  if (!match) return 7 * 24 * 60 * 60 * 1000;
+const TTL_PATTERN = /^(\d+)([smhd])$/;
+
+export function parseTtlMs(ttl: string): number {
+  const match = TTL_PATTERN.exec(ttl.trim().toLowerCase());
+  if (!match) {
+    throw new Error(
+      `Invalid JWT TTL format: "${ttl}". Expected a value like 7d, 24h, 15m, 30s (number + unit s|m|h|d).`,
+    );
+  }
   const n = Number(match[1]);
   const unit = match[2];
   const multipliers: Record<string, number> = {
@@ -45,6 +51,10 @@ export function parseUserIdFromSub(sub: string): number {
   return userId;
 }
 
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 export async function register(
   app: FastifyInstance,
   email: string,
@@ -53,8 +63,9 @@ export async function register(
   const secret = app.config.JWT_SECRET;
   if (!secret) throw new AppError(500, ERRORS.JWT_SECRET_NOT_CONFIGURED);
 
+  const normalizedEmail = normalizeEmail(email);
   const existing = await app.db.query.users.findFirst({
-    where: eq(users.email, email),
+    where: eq(sql`lower(${users.email})`, normalizedEmail),
   });
   if (existing) throw new AppError(409, ERRORS.EMAIL_ALREADY_REGISTERED);
 
@@ -65,7 +76,7 @@ export async function register(
     const result = await app.db.transaction(async (tx) => {
       const [inserted] = await tx
         .insert(users)
-        .values({ email, passwordHash })
+        .values({ email: normalizedEmail, passwordHash })
         .returning({
           id: users.id,
           email: users.email,
@@ -113,8 +124,9 @@ export async function login(
   const secret = app.config.JWT_SECRET;
   if (!secret) throw new AppError(500, ERRORS.JWT_SECRET_NOT_CONFIGURED);
 
+  const normalizedEmail = normalizeEmail(email);
   const user = await app.db.query.users.findFirst({
-    where: eq(users.email, email),
+    where: eq(sql`lower(${users.email})`, normalizedEmail),
     columns: { id: true, email: true, passwordHash: true, createdAt: true },
   });
   if (!user?.passwordHash)

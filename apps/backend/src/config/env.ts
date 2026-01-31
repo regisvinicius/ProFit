@@ -11,8 +11,20 @@ export const envSchema = z.object({
     .optional()
     .transform((s) => (s ? s.split(",").map((o) => o.trim()) : [])),
   JWT_SECRET: z.string().min(32).optional(),
-  JWT_ACCESS_TTL: z.string().default("15m"),
-  JWT_REFRESH_TTL: z.string().default("7d"),
+  JWT_ACCESS_TTL: z
+    .string()
+    .default("15m")
+    .refine((s) => /^(\d+)([smhd])$/.test(s.trim().toLowerCase()), {
+      message:
+        "JWT_ACCESS_TTL must match format: number + unit (s|m|h|d), e.g. 15m",
+    }),
+  JWT_REFRESH_TTL: z
+    .string()
+    .default("7d")
+    .refine((s) => /^(\d+)([smhd])$/.test(s.trim().toLowerCase()), {
+      message:
+        "JWT_REFRESH_TTL must match format: number + unit (s|m|h|d), e.g. 7d",
+    }),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_CALLBACK_URI: z.string().url().optional(),

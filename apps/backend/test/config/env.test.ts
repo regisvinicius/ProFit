@@ -38,6 +38,18 @@ describe("env config", () => {
     expect(parsed.success).toBe(false);
   });
 
+  it("rejects invalid JWT_REFRESH_TTL format", () => {
+    expect(envSchema.safeParse({ JWT_REFRESH_TTL: "30days" }).success).toBe(
+      false,
+    );
+    expect(envSchema.safeParse({ JWT_REFRESH_TTL: "1 week" }).success).toBe(
+      false,
+    );
+    expect(envSchema.safeParse({ JWT_REFRESH_TTL: "invalid" }).success).toBe(
+      false,
+    );
+  });
+
   it("accepts optional DATABASE_URL and JWT_SECRET", () => {
     const parsed = envSchema.safeParse({
       DATABASE_URL: "postgres://localhost/db",
