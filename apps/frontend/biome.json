@@ -1,6 +1,8 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "files": { "ignore": ["dist", "node_modules"] },
+  "files": {
+    "ignore": ["dist", "node_modules", "playwright-report", "test-results"]
+  },
   "organizeImports": { "enabled": true },
   "linter": {
     "enabled": true,

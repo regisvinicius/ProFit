@@ -9,6 +9,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:watch": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:install": "playwright install chromium",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write ."
@@ -35,6 +39,7 @@
     "tailwindcss": "^3.4.15",
     "typescript": "5.7.2",
     "vite": "^6.0.3",
-    "vitest": "^2.1.6"
+    "vitest": "^2.1.6",
+    "@playwright/test": "^1.49.0"
   }
 }
