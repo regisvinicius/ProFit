@@ -1,0 +1,222 @@
+import { createHash, randomBytes } from "node:crypto";
+import argon2 from "argon2";
+import { and, eq, gt, sql } from "drizzle-orm";
+import type { FastifyInstance } from "fastify";
+import { refreshTokens, users } from "../db/schemas/index.js";
+import { AppError, ERRORS, isUniqueViolation } from "../lib/errors.js";
+import type { AuthResponse, AuthUser } from "../schemas/auth.js";
+
+const REFRESH_TOKEN_BYTES = 32;
+const TOKEN_HASH_ALG = "sha256";
+
+const TTL_PATTERN = /^(\d+)([smhd])$/;
+
+export function parseTtlMs(ttl: string): number {
+  const match = TTL_PATTERN.exec(ttl.trim().toLowerCase());
+  if (!match) {
+    throw new Error(
+      `Invalid JWT TTL format: "${ttl}". Expected a value like 7d, 24h, 15m, 30s (number + unit s|m|h|d).`,
+    );
+  }
+  const n = Number(match[1]);
+  const unit = match[2];
+  const multipliers: Record<string, number> = {
+    s: 1000,
+    m: 60 * 1000,
+    h: 60 * 60 * 1000,
+    d: 24 * 60 * 60 * 1000,
+  };
+  return n * (multipliers[unit] ?? multipliers.d);
+}
+
+function hashToken(token: string): string {
+  return createHash(TOKEN_HASH_ALG).update(token).digest("hex");
+}
+
+function toAuthUser(row: {
+  id: number;
+  email: string;
+  createdAt: Date;
+}): AuthUser {
+  return {
+    id: row.id,
+    email: row.email,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+export function parseUserIdFromSub(sub: string): number {
+  const userId = Number.parseInt(sub, 10);
+  if (Number.isNaN(userId)) throw new AppError(401, ERRORS.INVALID_TOKEN);
+  return userId;
+}
+
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export async function register(
+  app: FastifyInstance,
+  email: string,
+  password: string,
+): Promise<AuthResponse> {
+  const secret = app.config.JWT_SECRET;
+  if (!secret) throw new AppError(500, ERRORS.JWT_SECRET_NOT_CONFIGURED);
+
+  const normalizedEmail = normalizeEmail(email);
+  const existing = await app.db.query.users.findFirst({
+    where: eq(sql`lower(${users.email})`, normalizedEmail),
+  });
+  if (existing) throw new AppError(409, ERRORS.EMAIL_ALREADY_REGISTERED);
+
+  const passwordHash = await argon2.hash(password);
+  let user: { id: number; email: string; createdAt: Date };
+  let refreshToken: string;
+  try {
+    const result = await app.db.transaction(async (tx) => {
+      const [inserted] = await tx
+        .insert(users)
+        .values({ email: normalizedEmail, passwordHash })
+        .returning({
+          id: users.id,
+          email: users.email,
+          createdAt: users.createdAt,
+        });
+      if (!inserted) throw new AppError(500, ERRORS.INSERT_FAILED);
+
+      const token = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
+      const expiresAt = new Date(
+        Date.now() + parseTtlMs(app.config.JWT_REFRESH_TTL),
+      );
+      await tx.insert(refreshTokens).values({
+        userId: inserted.id,
+        tokenHash: hashToken(token),
+        expiresAt,
+      });
+      return { user: inserted, refreshToken: token };
+    });
+    user = result.user;
+    refreshToken = result.refreshToken;
+  } catch (err) {
+    if (isUniqueViolation(err)) {
+      throw new AppError(409, ERRORS.EMAIL_ALREADY_REGISTERED);
+    }
+    throw err;
+  }
+
+  const accessToken = app.jwt.sign(
+    { sub: String(user.id), email: user.email },
+    { expiresIn: app.config.JWT_ACCESS_TTL },
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+    user: toAuthUser(user),
+  };
+}
+
+export async function login(
+  app: FastifyInstance,
+  email: string,
+  password: string,
+): Promise<AuthResponse> {
+  const secret = app.config.JWT_SECRET;
+  if (!secret) throw new AppError(500, ERRORS.JWT_SECRET_NOT_CONFIGURED);
+
+  const normalizedEmail = normalizeEmail(email);
+  const user = await app.db.query.users.findFirst({
+    where: eq(sql`lower(${users.email})`, normalizedEmail),
+    columns: { id: true, email: true, passwordHash: true, createdAt: true },
+  });
+  if (!user?.passwordHash)
+    throw new AppError(401, ERRORS.INVALID_EMAIL_OR_PASSWORD);
+
+  const ok = await argon2.verify(user.passwordHash, password);
+  if (!ok) throw new AppError(401, ERRORS.INVALID_EMAIL_OR_PASSWORD);
+
+  const refreshToken = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
+  const expiresAt = new Date(
+    Date.now() + parseTtlMs(app.config.JWT_REFRESH_TTL),
+  );
+  await app.db.insert(refreshTokens).values({
+    userId: user.id,
+    tokenHash: hashToken(refreshToken),
+    expiresAt,
+  });
+
+  const accessToken = app.jwt.sign(
+    { sub: String(user.id), email: user.email },
+    { expiresIn: app.config.JWT_ACCESS_TTL },
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+    user: toAuthUser(user),
+  };
+}
+
+export async function refresh(
+  app: FastifyInstance,
+  refreshToken: string,
+): Promise<AuthResponse> {
+  const secret = app.config.JWT_SECRET;
+  if (!secret) throw new AppError(500, ERRORS.JWT_SECRET_NOT_CONFIGURED);
+
+  const tokenHash = hashToken(refreshToken);
+  const now = new Date();
+  const newRefreshToken = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
+  const expiresAt = new Date(
+    Date.now() + parseTtlMs(app.config.JWT_REFRESH_TTL),
+  );
+
+  const { user } = await app.db.transaction(async (tx) => {
+    const [deleted] = await tx
+      .delete(refreshTokens)
+      .where(
+        and(
+          eq(refreshTokens.tokenHash, tokenHash),
+          gt(refreshTokens.expiresAt, now),
+        ),
+      )
+      .returning({ id: refreshTokens.id, userId: refreshTokens.userId });
+    if (!deleted) {
+      throw new AppError(401, ERRORS.INVALID_OR_EXPIRED_REFRESH_TOKEN);
+    }
+
+    const userRow = await tx.query.users.findFirst({
+      where: eq(users.id, deleted.userId),
+      columns: { id: true, email: true, createdAt: true },
+    });
+    if (!userRow) throw new AppError(404, ERRORS.USER_NOT_FOUND);
+
+    await tx.insert(refreshTokens).values({
+      userId: userRow.id,
+      tokenHash: hashToken(newRefreshToken),
+      expiresAt,
+    });
+    return { user: userRow };
+  });
+
+  const accessToken = app.jwt.sign(
+    { sub: String(user.id), email: user.email },
+    { expiresIn: app.config.JWT_ACCESS_TTL },
+  );
+
+  return {
+    accessToken,
+    refreshToken: newRefreshToken,
+    user: toAuthUser(user),
+  };
+}
+
+export async function revokeRefresh(
+  app: FastifyInstance,
+  refreshToken: string,
+): Promise<void> {
+  const tokenHash = hashToken(refreshToken);
+  await app.db
+    .delete(refreshTokens)
+    .where(eq(refreshTokens.tokenHash, tokenHash));
+}
