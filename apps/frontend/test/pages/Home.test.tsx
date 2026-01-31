@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { AuthUser } from "backend/schemas/auth";
 import { describe, expect, it, vi } from "vitest";
-import { Home } from "./Home";
+import { Home } from "../../src/pages/Home.tsx";
 
 const mockLogout = vi.fn();
 const mockNavigate = vi.fn();
@@ -13,7 +13,7 @@ const mockUser: AuthUser = {
   createdAt: "",
 };
 
-vi.mock("../contexts/AuthContext", () => ({
+vi.mock("../../src/contexts/AuthContext", () => ({
   useAuth: () => ({
     state: {
       status: "authenticated",

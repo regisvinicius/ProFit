@@ -115,11 +115,7 @@ export const authRoutes: FastifyPluginAsyncZod = async (
       },
     },
     async (request, reply) => {
-      const { sub } = request.user;
-      const userId = Number.parseInt(sub, 10);
-      if (Number.isNaN(userId)) {
-        throw new AppError(401, ERRORS.INVALID_TOKEN);
-      }
+      const userId = authService.parseUserIdFromSub(request.user.sub);
       const user = await app.db.query.users.findFirst({
         where: eq(users.id, userId),
         columns: { id: true, email: true, createdAt: true },

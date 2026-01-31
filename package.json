@@ -21,6 +21,7 @@
     "test:frontend": "pnpm --filter frontend test",
     "test:watch": "pnpm --filter backend run test:watch",
     "ci": "pnpm lint && pnpm build && pnpm test",
+    "prepare": "husky",
     "db:generate": "pnpm --filter backend db:generate",
     "db:migrate": "pnpm --filter backend db:migrate",
     "db:seed": "pnpm --filter backend db:seed",
@@ -28,6 +29,7 @@
     "db:studio": "pnpm --filter backend db:studio"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "husky": "^9.1.7"
   }
 }

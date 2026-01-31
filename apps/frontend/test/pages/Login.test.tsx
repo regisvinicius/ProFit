@@ -2,10 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { AuthResponse } from "backend/schemas/auth";
 import { describe, expect, it, vi } from "vitest";
-import { login } from "../api/auth";
-import { Login } from "./Login";
+import { login } from "../../src/api/auth.ts";
+import { Login } from "../../src/pages/Login.tsx";
 
-vi.mock("../contexts/AuthContext", () => ({
+vi.mock("../../src/contexts/AuthContext", () => ({
   useAuth: () => ({
     setAuth: vi.fn(),
   }),
@@ -15,7 +15,7 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-vi.mock("../api/auth", () => ({
+vi.mock("../../src/api/auth", () => ({
   login: vi.fn(),
 }));
 

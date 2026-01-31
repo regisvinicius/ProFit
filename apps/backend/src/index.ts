@@ -23,11 +23,9 @@ app.decorate("config", env);
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
-// CSP disabled for now (dev/local); enable with a proper policy for production when front is on same origin or subdomain.
 await app.register(fastifyHelmet, {
   contentSecurityPolicy: false,
 });
-// When CORS_ORIGINS is empty, origin: true accepts any origin (convenient for dev). In production, set CORS_ORIGINS to explicit origins.
 await app.register(fastifyCors, {
   origin: env.CORS_ORIGINS.length > 0 ? env.CORS_ORIGINS : true,
 });

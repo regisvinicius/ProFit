@@ -2,8 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { AuthProvider } from "./contexts/AuthContext";
-import { router } from "./router.tsx";
+import { AuthProvider } from "../src/contexts/AuthContext";
+import { router } from "../src/router.tsx";
 
 vi.stubGlobal("localStorage", {
   getItem: vi.fn(() => null),

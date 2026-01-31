@@ -7,7 +7,7 @@ import {
   computeProfit,
   computeRevenue,
   totalExtraCosts,
-} from "./profit.js";
+} from "../../src/domain/profit.js";
 
 describe("computeRevenue", () => {
   it("returns quantity × unitPrice", () => {

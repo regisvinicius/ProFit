@@ -39,6 +39,12 @@ function toAuthUser(row: {
   };
 }
 
+export function parseUserIdFromSub(sub: string): number {
+  const userId = Number.parseInt(sub, 10);
+  if (Number.isNaN(userId)) throw new AppError(401, ERRORS.INVALID_TOKEN);
+  return userId;
+}
+
 export async function register(
   app: FastifyInstance,
   email: string,
@@ -54,33 +60,38 @@ export async function register(
 
   const passwordHash = await argon2.hash(password);
   let user: { id: number; email: string; createdAt: Date };
+  let refreshToken: string;
   try {
-    const [inserted] = await app.db
-      .insert(users)
-      .values({ email, passwordHash })
-      .returning({
-        id: users.id,
-        email: users.email,
-        createdAt: users.createdAt,
+    const result = await app.db.transaction(async (tx) => {
+      const [inserted] = await tx
+        .insert(users)
+        .values({ email, passwordHash })
+        .returning({
+          id: users.id,
+          email: users.email,
+          createdAt: users.createdAt,
+        });
+      if (!inserted) throw new AppError(500, ERRORS.INSERT_FAILED);
+
+      const token = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
+      const expiresAt = new Date(
+        Date.now() + parseTtlMs(app.config.JWT_REFRESH_TTL),
+      );
+      await tx.insert(refreshTokens).values({
+        userId: inserted.id,
+        tokenHash: hashToken(token),
+        expiresAt,
       });
-    if (!inserted) throw new AppError(500, ERRORS.INSERT_FAILED);
-    user = inserted;
+      return { user: inserted, refreshToken: token };
+    });
+    user = result.user;
+    refreshToken = result.refreshToken;
   } catch (err) {
     if (isUniqueViolation(err)) {
       throw new AppError(409, ERRORS.EMAIL_ALREADY_REGISTERED);
     }
     throw err;
   }
-
-  const refreshToken = randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
-  const expiresAt = new Date(
-    Date.now() + parseTtlMs(app.config.JWT_REFRESH_TTL),
-  );
-  await app.db.insert(refreshTokens).values({
-    userId: user.id,
-    tokenHash: hashToken(refreshToken),
-    expiresAt,
-  });
 
   const accessToken = app.jwt.sign(
     { sub: String(user.id), email: user.email },

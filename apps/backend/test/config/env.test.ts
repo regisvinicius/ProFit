@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { envSchema } from "./env.js";
+import { envSchema } from "../../src/config/env.js";
 
 describe("env config", () => {
   it("parses defaults with empty input", () => {
