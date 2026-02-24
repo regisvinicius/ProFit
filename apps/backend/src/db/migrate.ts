@@ -1,14 +1,17 @@
-import "dotenv/config";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
 import { Pool } from "pg";
+import { runMigrations } from "./run-migrations.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is required");
 
 const pool = new Pool({ connectionString: url });
-const db = drizzle(pool);
-await migrate(db, { migrationsFolder: "./drizzle" });
+await runMigrations(pool);
 console.log("Migrations done");
 await pool.end();
 process.exit(0);

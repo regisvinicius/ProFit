@@ -21,9 +21,20 @@ async function requireJwt(request: FastifyRequest, _reply: FastifyReply) {
   await request.jwtVerify<JwtPayload>();
 }
 
+async function requireAuthConfig(
+  request: FastifyRequest,
+  _reply: FastifyReply,
+) {
+  const { JWT_SECRET, DATABASE_URL } = request.server.config;
+  if (!JWT_SECRET || !DATABASE_URL) {
+    throw new AppError(503, ERRORS.AUTH_NOT_CONFIGURED);
+  }
+}
+
 export const authRoutes: FastifyPluginAsyncZod = async (
   app: FastifyInstance,
 ) => {
+  app.addHook("preHandler", requireAuthConfig);
   const t = app.withTypeProvider<ZodTypeProvider>();
 
   t.post(

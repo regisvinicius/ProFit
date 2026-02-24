@@ -1,4 +1,3 @@
-import "dotenv/config";
 import fastifyCors from "@fastify/cors";
 import fastifyHelmet from "@fastify/helmet";
 import fastifyJwt from "@fastify/jwt";
@@ -56,9 +55,6 @@ if (env.JWT_SECRET) {
 app.setErrorHandler(createErrorHandler());
 
 app.register(healthRoutes, { prefix: "/v1/health" });
-
-if (env.JWT_SECRET && env.DATABASE_URL) {
-  app.register(authRoutes, { prefix: "/v1/auth" });
-}
+app.register(authRoutes, { prefix: "/v1/auth" });
 
 await app.listen({ port: env.PORT, host: "0.0.0.0" });

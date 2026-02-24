@@ -19,6 +19,21 @@ vi.mock("../../src/api/auth", () => ({
   login: vi.fn(),
 }));
 
+const ptStrings: Record<string, string> = {
+  email: "Email",
+  password: "Senha",
+  enter: "Entrar",
+  entering: "Entrando...",
+};
+
+vi.mock("../../src/contexts/I18nContext", () => ({
+  useI18n: () => ({
+    t: (key: string) => ptStrings[key] ?? key,
+    locale: "pt",
+    setLocale: vi.fn(),
+  }),
+}));
+
 const mockLogin = vi.mocked(login);
 
 describe("Login", () => {

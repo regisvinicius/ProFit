@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { login } from "../api/auth";
 import { useAuth } from "../contexts/AuthContext";
+import { useI18n } from "../contexts/I18nContext";
 
 export function Login() {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useI18n();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,7 +39,7 @@ export function Login() {
         )}
         <div>
           <label htmlFor="email" className="block text-sm mb-1">
-            Email
+            {t("email")}
           </label>
           <input
             id="email"
@@ -51,7 +53,7 @@ export function Login() {
         </div>
         <div>
           <label htmlFor="password" className="block text-sm mb-1">
-            Senha
+            {t("password")}
           </label>
           <input
             id="password"
@@ -68,7 +70,7 @@ export function Login() {
           disabled={loading}
           className="w-full bg-gray-800 text-white py-2 rounded disabled:opacity-50"
         >
-          {loading ? "Entrando…" : "Entrar"}
+          {loading ? t("entering") : t("enter")}
         </button>
       </form>
     </div>
