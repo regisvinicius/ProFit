@@ -19,6 +19,8 @@ export function isUniqueViolation(err: unknown): boolean {
 }
 
 export const ERRORS = {
+  AUTH_NOT_CONFIGURED:
+    "Auth not configured. Set JWT_SECRET and DATABASE_URL in .env",
   EMAIL_ALREADY_REGISTERED: "Email already registered",
   INVALID_EMAIL_OR_PASSWORD: "Invalid email or password",
   REFRESH_TOKEN_REQUIRED: "refreshToken required in body",

@@ -3,6 +3,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "../src/contexts/AuthContext";
+import { I18nProvider } from "../src/contexts/I18nContext";
 import { router } from "../src/router.tsx";
 
 vi.stubGlobal("localStorage", {
@@ -16,9 +17,11 @@ describe("App", () => {
     const queryClient = new QueryClient();
     render(
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </I18nProvider>
       </QueryClientProvider>,
     );
     expect(document.body).toBeInTheDocument();
@@ -28,9 +31,11 @@ describe("App", () => {
     const queryClient = new QueryClient();
     render(
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <RouterProvider router={router} />
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </I18nProvider>
       </QueryClientProvider>,
     );
     await waitFor(() => {

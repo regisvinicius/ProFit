@@ -2,7 +2,7 @@
   "name": "backend",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm",
+  "packageManager": "pnpm@10.28.2",
   "exports": {
     "./schemas/*": "./src/schemas/*.ts"
   },
@@ -12,6 +12,8 @@
     "start": "node dist/index.js",
     "db:generate": "node --import tsx ./node_modules/drizzle-kit/bin.cjs generate",
     "db:migrate": "tsx src/db/migrate.ts",
+    "db:reset": "tsx src/db/reset.ts",
+    "db:reset:test": "tsx src/db/reset-and-seed.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "dotenv -e .env -- drizzle-kit studio",
     "lint": "biome check .",
@@ -29,7 +31,7 @@
     "@fastify/swagger": "^9.4.0",
     "@fastify/swagger-ui": "^5.0.0",
     "drizzle-orm": "^0.36.1",
-    "fastify": "^5.1.0",
+    "fastify": "^5.7.3",
     "pg": "^8.13.1",
     "uuid": "^11.0.3",
     "zod": "^3.23.8",

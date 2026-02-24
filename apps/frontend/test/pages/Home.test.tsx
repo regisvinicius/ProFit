@@ -24,20 +24,45 @@ vi.mock("../../src/contexts/AuthContext", () => ({
   }),
 }));
 
+const enStrings: Record<string, string> = {
+  menu: "Menu",
+  home: "Home",
+  logout: "Log out",
+  workInProgress: "Work in progress",
+  loading: "Loading",
+  language: "Language",
+};
+vi.mock("../../src/contexts/I18nContext", () => ({
+  useI18n: () => ({
+    t: (key: string) => enStrings[key] ?? key,
+    locale: "en",
+    setLocale: vi.fn(),
+  }),
+}));
+
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
+  useRouterState: () => ({ location: { pathname: "/" } }),
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 
 describe("Home", () => {
-  it("shows logged-in user email", () => {
+  it("shows logged-in user email in header", () => {
     render(<Home />);
     expect(screen.getByText(/user@example.com/)).toBeInTheDocument();
-    expect(screen.getByText(/está logado/)).toBeInTheDocument();
   });
 
-  it("shows Sair button and calls logout and navigate on click", async () => {
+  it("shows WIP and loading bar in main area", () => {
     render(<Home />);
-    const btn = screen.getByRole("button", { name: /sair/i });
+    expect(screen.getByText(/work in progress/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(enStrings.loading)).toBeInTheDocument();
+  });
+
+  it("shows logout in sidebar and calls logout and navigate on click", async () => {
+    render(<Home />);
+    const btn = screen.getByRole("button", { name: /log out/i });
     await userEvent.click(btn);
     expect(mockLogout).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/login" });
