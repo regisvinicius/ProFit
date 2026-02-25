@@ -1,27 +1,41 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1769726199763,
-      "tag": "0000_complex_gambit",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1769726994157,
-      "tag": "0001_uneven_quicksilver",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1769727383410,
-      "tag": "0002_mixed_valeria_richards",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1769726199763,
+			"tag": "0000_complex_gambit",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1769726994157,
+			"tag": "0001_uneven_quicksilver",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1769727383410,
+			"tag": "0002_mixed_valeria_richards",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1772054990804,
+			"tag": "0003_lively_piledriver",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1772056262505,
+			"tag": "0004_stiff_moon_knight",
+			"breakpoints": true
+		}
+	]
 }

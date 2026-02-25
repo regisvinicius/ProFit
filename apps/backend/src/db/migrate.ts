@@ -5,6 +5,8 @@ import { Pool } from "pg";
 import { runMigrations } from "./run-migrations.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Try local package .env first, then root .env
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const url = process.env.DATABASE_URL;

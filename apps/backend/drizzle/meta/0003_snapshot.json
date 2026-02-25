@@ -1,6 +1,6 @@
 {
-	"id": "b5a866d9-bc66-4c0f-ac2e-608ea77c3c2a",
-	"prevId": "37589a07-fa9c-47e9-bc39-28401b996843",
+	"id": "1e665535-39ef-4c28-8078-a898d6a2c2eb",
+	"prevId": "b5a866d9-bc66-4c0f-ac2e-608ea77c3c2a",
 	"version": "7",
 	"dialect": "postgresql",
 	"tables": {
@@ -456,6 +456,12 @@
 					"primaryKey": false,
 					"notNull": true,
 					"default": "now()"
+				},
+				"profile_picture_url": {
+					"name": "profile_picture_url",
+					"type": "varchar(512)",
+					"primaryKey": false,
+					"notNull": false
 				}
 			},
 			"indexes": {

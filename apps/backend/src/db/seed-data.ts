@@ -8,15 +8,15 @@ const TEST_EMAIL = "test@gmail.com";
 const TEST_PASSWORD = "test";
 
 export async function runSeed(pool: Pool): Promise<void> {
-  const db = drizzle<DatabaseSchema>(pool, { schema: schemaForDb });
-  const existing = await db.query.users.findFirst({
-    where: eq(users.email, TEST_EMAIL),
-  });
-  if (existing) {
-    console.log(`User ${TEST_EMAIL} already exists, skip seed.`);
-    return;
-  }
-  const passwordHash = await argon2.hash(TEST_PASSWORD);
-  await db.insert(users).values({ email: TEST_EMAIL, passwordHash });
-  console.log(`Seeded user ${TEST_EMAIL}.`);
+	const db = drizzle<DatabaseSchema>(pool, { schema: schemaForDb });
+	const existing = await db.query.users.findFirst({
+		where: eq(users.email, TEST_EMAIL),
+	});
+	if (existing) {
+		console.log(`User ${TEST_EMAIL} already exists, skip seed.`);
+		return;
+	}
+	const passwordHash = await argon2.hash(TEST_PASSWORD);
+	await db.insert(users).values({ email: TEST_EMAIL, passwordHash });
+	console.log(`Seeded user ${TEST_EMAIL}.`);
 }
