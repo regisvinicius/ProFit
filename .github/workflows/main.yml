@@ -48,6 +48,10 @@ jobs:
         id: build
         run: pnpm run build
 
+      - name: Run tests
+        id: tests
+        run: pnpm run test
+
       - name: Generate tag
         id: generate-tag
         run: echo "TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
