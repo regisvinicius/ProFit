@@ -5,6 +5,7 @@ export { products } from "./products.js";
 export { feeRules } from "./feeRules.js";
 export { sales } from "./sales.js";
 export { costs } from "./costs.js";
+export { feeTypeEnum } from "./enums.js";
 
 import { channels } from "./channels.js";
 import { costs } from "./costs.js";
@@ -15,12 +16,12 @@ import { sales } from "./sales.js";
 import { users } from "./users.js";
 
 export const schemaForDb = {
-  users,
-  refreshTokens,
-  channels,
-  products,
-  feeRules,
-  sales,
-  costs,
+	users,
+	refreshTokens,
+	channels,
+	products,
+	feeRules,
+	sales,
+	costs,
 };
 export type DatabaseSchema = typeof schemaForDb;
