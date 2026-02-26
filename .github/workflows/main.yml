@@ -48,32 +48,32 @@ jobs:
         id: build
         run: pnpm run build
 
+      - name: Generate tag
+        id: generate-tag
+        run: echo "TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - name: Build and push backend
         id: build-and-push-backend
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_BACKEND_REPOSITORY: ${{ vars.ECR_BACKEND_REPOSITORY }}
+          IMAGE_TAG: ${{ steps.generate-tag.outputs.TAG }}
         run: |
           IMAGE=${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_BACKEND_REPOSITORY }}
-          TAG=${{ github.sha }}
 
-          docker build -f apps/backend/Dockerfile -t $IMAGE:$TAG .
-          docker tag $IMAGE:$TAG $IMAGE:latest
+          docker build -f apps/backend/Dockerfile -t $IMAGE:$IMAGE_TAG .
 
-          docker push $IMAGE:$TAG
-          docker push $IMAGE:latest
+          docker push $IMAGE:$IMAGE_TAG
 
       - name: Build and push frontend
         id: build-and-push-frontend
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_FRONTEND_REPOSITORY: ${{ vars.ECR_FRONTEND_REPOSITORY }}
+          IMAGE_TAG: ${{ steps.generate-tag.outputs.TAG }}
         run: |
           IMAGE=${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_FRONTEND_REPOSITORY }}
-          TAG=${{ github.sha }}
 
-          docker build -f apps/frontend/Dockerfile -t $IMAGE:$TAG .
-          docker tag $IMAGE:$TAG $IMAGE:latest
+          docker build -f apps/frontend/Dockerfile -t $IMAGE:$IMAGE_TAG .
 
-          docker push $IMAGE:$TAG
-          docker push $IMAGE:latest
+          docker push $IMAGE:$IMAGE_TAG
