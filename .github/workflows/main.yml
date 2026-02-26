@@ -14,6 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup pnpm
+        id: setup-pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 8
@@ -29,15 +30,35 @@ jobs:
       - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
 
       - name: Setup Node.js
+        id: setup-node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
 
       - name: Install dependencies
+        id: install-dependencies
         run: pnpm install
 
       - name: Build
+        id: build
         run: pnpm run build
+
+
+      - name: Build and push backend
+        id: build-and-push-backend
+        run: |
+          BACKEND_IMAGE=public.ecr.aws/g2p9a1c6/rocketseat/profit-backend
+          docker build -t $BACKEND_IMAGE:latest ./apps/backend
+          docker push $BACKEND_IMAGE:latest
+
+      - name: Build and push frontend
+        id: build-and-push-frontend
+        run: |
+          FRONTEND_IMAGE=public.ecr.aws/g2p9a1c6/rocketseat/profit-frontend
+          docker build -t $FRONTEND_IMAGE:latest ./apps/frontend
+          docker push $FRONTEND_IMAGE:latest
