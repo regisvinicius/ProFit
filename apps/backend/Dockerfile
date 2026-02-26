@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ RUN pnpm install --frozen-lockfile
 
 RUN pnpm --filter backend build
 
-FROM node:22-alpine AS production
+FROM node:22-slim AS production
 
 WORKDIR /app
 
