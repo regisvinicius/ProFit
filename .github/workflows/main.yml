@@ -54,7 +54,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_BACKEND_REPOSITORY: ${{ vars.ECR_BACKEND_REPOSITORY }}
         run: |
-          IMAGE=${{ env.ECR_REGISTRY }}/${{ env.ECR_BACKEND_REPOSITORY }}
+          IMAGE=${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_BACKEND_REPOSITORY }}
           TAG=${{ github.sha }}
 
           docker build -f apps/backend/Dockerfile -t $IMAGE:$TAG .
@@ -69,7 +69,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_FRONTEND_REPOSITORY: ${{ vars.ECR_FRONTEND_REPOSITORY }}
         run: |
-          IMAGE=${{ env.ECR_REGISTRY }}/${{ env.ECR_FRONTEND_REPOSITORY }}
+          IMAGE=${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_FRONTEND_REPOSITORY }}
           TAG=${{ github.sha }}
 
           docker build -f apps/frontend/Dockerfile -t $IMAGE:$TAG .
