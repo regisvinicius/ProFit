@@ -56,28 +56,59 @@ jobs:
         id: generate-tag
         run: echo "TAG=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Build and push backend
-        id: build-and-push-backend
+      
+      - name: Build backend
+        id: build-backend
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_BACKEND_REPOSITORY: ${{ vars.ECR_BACKEND_REPOSITORY }}
           IMAGE_TAG: ${{ steps.generate-tag.outputs.TAG }}
         run: |
           IMAGE=${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_BACKEND_REPOSITORY }}
-
           docker build -f apps/backend/Dockerfile -t $IMAGE:$IMAGE_TAG .
 
-          docker push $IMAGE:$IMAGE_TAG
-
-      - name: Build and push frontend
-        id: build-and-push-frontend
+      - name: Build frontend
+        id: build-frontend
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_FRONTEND_REPOSITORY: ${{ vars.ECR_FRONTEND_REPOSITORY }}
           IMAGE_TAG: ${{ steps.generate-tag.outputs.TAG }}
         run: |
           IMAGE=${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_FRONTEND_REPOSITORY }}
-
           docker build -f apps/frontend/Dockerfile -t $IMAGE:$IMAGE_TAG .
 
-          docker push $IMAGE:$IMAGE_TAG
+
+      - name: Run Trivy vulnerability scanner backend
+        id: trivy-backend
+        uses: aquasecurity/trivy-action@0.33.1
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_BACKEND_REPOSITORY: ${{ vars.ECR_BACKEND_REPOSITORY }}
+        with:
+          image-ref: ${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_BACKEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
+          format: 'table'
+          exit-code: '1' 
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+        
+      - name: Run Trivy vulnerability scanner frontend
+        id: trivy-frontend
+        uses: aquasecurity/trivy-action@0.33.1
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_FRONTEND_REPOSITORY: ${{ vars.ECR_FRONTEND_REPOSITORY }}
+        with:
+          image-ref: ${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_FRONTEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
+          format: 'table'
+          exit-code: '1' 
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Push Docker Image backend
+        run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEFAULT_ALIAS }}/${{ vars.ECR_BACKEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
+
+      - name: Push Docker Image frontend
+        run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEFAULT_ALIAS }}/${{ vars.ECR_FRONTEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
