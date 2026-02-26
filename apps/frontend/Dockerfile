@@ -1,7 +1,7 @@
 # Stage 1: Base - Install dependencies
 FROM node:22-alpine AS base
 WORKDIR /app
-RUN corepack enable && corepack prepare pnpm@8.15.5 --activate
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY apps/frontend/package.json ./apps/frontend/
 COPY apps/backend/package.json ./apps/backend/
