@@ -42,21 +42,29 @@ jobs:
         id: install-dependencies
         run: pnpm install
 
-      - name: Build
+      - name: Build workspace
         id: build
         run: pnpm run build
-
 
       - name: Build and push backend
         id: build-and-push-backend
         run: |
-          BACKEND_IMAGE=public.ecr.aws/g2p9a1c6/rocketseat/profit-backend
-          docker build -t $BACKEND_IMAGE:latest ./apps/backend
-          docker push $BACKEND_IMAGE:latest
+          IMAGE=public.ecr.aws/g2p9a1c6/rocketseat/profit-backend
+          TAG=${{ github.sha }}
+
+          docker build -f apps/backend/Dockerfile -t $IMAGE:$TAG .
+          docker tag $IMAGE:$TAG $IMAGE:latest
+
+          docker push $IMAGE:$TAG
+          docker push $IMAGE:latest
 
       - name: Build and push frontend
-        id: build-and-push-frontend
         run: |
-          FRONTEND_IMAGE=public.ecr.aws/g2p9a1c6/rocketseat/profit-frontend
-          docker build -t $FRONTEND_IMAGE:latest ./apps/frontend
-          docker push $FRONTEND_IMAGE:latest
+          IMAGE=public.ecr.aws/g2p9a1c6/rocketseat/profit-frontend
+          TAG=${{ github.sha }}
+
+          docker build -f apps/frontend/Dockerfile -t $IMAGE:$TAG .
+          docker tag $IMAGE:$TAG $IMAGE:latest
+
+          docker push $IMAGE:$TAG
+          docker push $IMAGE:latest
