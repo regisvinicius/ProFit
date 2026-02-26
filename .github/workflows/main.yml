@@ -17,7 +17,7 @@ jobs:
         id: setup-pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 8
+          version: 10
 
       - name: Configure AWS credentials
         id: aws-credentials
