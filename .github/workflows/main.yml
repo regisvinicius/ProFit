@@ -33,6 +33,10 @@ jobs:
         with:
           registry-type: public
 
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Setup Node.js
         id: setup-node
         uses: actions/setup-node@v4
@@ -59,24 +63,28 @@ jobs:
       
       - name: Build backend
         id: build-backend
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_BACKEND_REPOSITORY: ${{ vars.ECR_BACKEND_REPOSITORY }}
-          IMAGE_TAG: ${{ steps.generate-tag.outputs.TAG }}
-        run: |
-          IMAGE=${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_BACKEND_REPOSITORY }}
-          docker build -f apps/backend/Dockerfile -t $IMAGE:$IMAGE_TAG .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/backend/Dockerfile
+          load: true
+          push: false
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEFAULT_ALIAS }}/${{ vars.ECR_BACKEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
+      
       - name: Build frontend
         id: build-frontend
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_FRONTEND_REPOSITORY: ${{ vars.ECR_FRONTEND_REPOSITORY }}
-          IMAGE_TAG: ${{ steps.generate-tag.outputs.TAG }}
-        run: |
-          IMAGE=${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_FRONTEND_REPOSITORY }}
-          docker build -f apps/frontend/Dockerfile -t $IMAGE:$IMAGE_TAG .
-
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/frontend/Dockerfile
+          load: true
+          push: false
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEFAULT_ALIAS }}/${{ vars.ECR_FRONTEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
 
       - name: Run Trivy vulnerability scanner backend
         id: trivy-backend
