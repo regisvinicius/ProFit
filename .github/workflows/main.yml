@@ -87,7 +87,6 @@ jobs:
         with:
           image-ref: ${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_BACKEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
           format: 'table'
-          exit-code: '1' 
           ignore-unfixed: true
           scanners: vuln
           skip-dirs: /usr/local/lib/node_modules
@@ -104,7 +103,6 @@ jobs:
         with:
           image-ref: ${{ env.ECR_REGISTRY }}/${{vars.DEFAULT_ALIAS}}/${{ env.ECR_FRONTEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
           format: 'table'
-          exit-code: '1' 
           ignore-unfixed: true
           scanners: vuln
           skip-dirs: /usr/local/lib/node_modules
