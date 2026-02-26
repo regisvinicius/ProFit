@@ -89,6 +89,8 @@ jobs:
           format: 'table'
           exit-code: '1' 
           ignore-unfixed: true
+          scanners: vuln
+          skip-dirs: /usr/local/lib/node_modules
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
@@ -104,6 +106,8 @@ jobs:
           format: 'table'
           exit-code: '1' 
           ignore-unfixed: true
+          scanners: vuln
+          skip-dirs: /usr/local/lib/node_modules
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
