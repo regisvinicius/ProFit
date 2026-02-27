@@ -12,13 +12,13 @@ const queryClient = new QueryClient();
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("root element not found");
 createRoot(rootEl).render(
-	<StrictMode>
-		<QueryClientProvider client={queryClient}>
-			<I18nProvider>
-				<AuthProvider>
-					<RouterProvider router={router} />
-				</AuthProvider>
-			</I18nProvider>
-		</QueryClientProvider>
-	</StrictMode>,
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <I18nProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </I18nProvider>
+    </QueryClientProvider>
+  </StrictMode>,
 );

@@ -6,249 +6,249 @@ import { z } from "zod";
 import { users } from "../db/schemas/index.js";
 import { AppError, ERRORS } from "../lib/errors.js";
 import {
-	authResponseSchema,
-	authUserSchema,
-	loginBodySchema,
-	logoutBodySchema,
-	refreshBodySchema,
-	registerBodySchema,
+  authResponseSchema,
+  authUserSchema,
+  loginBodySchema,
+  logoutBodySchema,
+  refreshBodySchema,
+  registerBodySchema,
 } from "../schemas/auth.js";
 import * as authService from "../services/auth.js";
 import { errorResponseSchema } from "../shared/schemas.js";
 import type { JwtPayload } from "../types/fastify.js";
 
 async function requireJwt(request: FastifyRequest, _reply: FastifyReply) {
-	if (!request.jwtVerify) throw new AppError(500, ERRORS.JWT_NOT_CONFIGURED);
-	await request.jwtVerify<JwtPayload>();
+  if (!request.jwtVerify) throw new AppError(500, ERRORS.JWT_NOT_CONFIGURED);
+  await request.jwtVerify<JwtPayload>();
 }
 
 async function requireAuthConfig(
-	request: FastifyRequest,
-	_reply: FastifyReply,
+  request: FastifyRequest,
+  _reply: FastifyReply,
 ) {
-	const { JWT_SECRET, DATABASE_URL } = request.server.config;
-	if (!JWT_SECRET || !DATABASE_URL) {
-		throw new AppError(503, ERRORS.AUTH_NOT_CONFIGURED);
-	}
+  const { JWT_SECRET, DATABASE_URL } = request.server.config;
+  if (!JWT_SECRET || !DATABASE_URL) {
+    throw new AppError(503, ERRORS.AUTH_NOT_CONFIGURED);
+  }
 }
 
 export const authRoutes: FastifyPluginAsyncZod = async (
-	app: FastifyInstance,
+  app: FastifyInstance,
 ) => {
-	app.addHook("preHandler", requireAuthConfig);
-	const t = app.withTypeProvider<ZodTypeProvider>();
+  app.addHook("preHandler", requireAuthConfig);
+  const t = app.withTypeProvider<ZodTypeProvider>();
 
-	t.post(
-		"/register",
-		{
-			schema: {
-				description: "Register with email and password",
-				body: registerBodySchema,
-				response: {
-					200: authResponseSchema,
-					409: errorResponseSchema,
-				},
-			},
-		},
-		async (request, reply) => {
-			const { email, password } = request.body;
-			const result = await authService.register(app, email, password);
-			return reply.send(result);
-		},
-	);
+  t.post(
+    "/register",
+    {
+      schema: {
+        description: "Register with email and password",
+        body: registerBodySchema,
+        response: {
+          200: authResponseSchema,
+          409: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { email, password } = request.body;
+      const result = await authService.register(app, email, password);
+      return reply.send(result);
+    },
+  );
 
-	t.post(
-		"/login",
-		{
-			schema: {
-				description: "Login with email and password",
-				body: loginBodySchema,
-				response: {
-					200: authResponseSchema,
-					401: errorResponseSchema,
-				},
-			},
-		},
-		async (request, reply) => {
-			const { email, password } = request.body;
-			const result = await authService.login(app, email, password);
-			return reply.send(result);
-		},
-	);
+  t.post(
+    "/login",
+    {
+      schema: {
+        description: "Login with email and password",
+        body: loginBodySchema,
+        response: {
+          200: authResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { email, password } = request.body;
+      const result = await authService.login(app, email, password);
+      return reply.send(result);
+    },
+  );
 
-	t.post(
-		"/refresh",
-		{
-			schema: {
-				description: "Exchange refresh token for new access + refresh",
-				body: refreshBodySchema,
-				response: {
-					200: authResponseSchema,
-					400: errorResponseSchema,
-					401: errorResponseSchema,
-				},
-			},
-		},
-		async (request, reply) => {
-			const { refreshToken } = request.body;
-			const result = await authService.refresh(app, refreshToken);
-			return reply.send(result);
-		},
-	);
+  t.post(
+    "/refresh",
+    {
+      schema: {
+        description: "Exchange refresh token for new access + refresh",
+        body: refreshBodySchema,
+        response: {
+          200: authResponseSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { refreshToken } = request.body;
+      const result = await authService.refresh(app, refreshToken);
+      return reply.send(result);
+    },
+  );
 
-	t.post(
-		"/logout",
-		{
-			schema: {
-				description: "Revoke refresh token",
-				body: logoutBodySchema,
-				response: { 204: { type: "null" } },
-			},
-		},
-		async (request, reply) => {
-			const { refreshToken: token } = request.body;
-			if (token) await authService.revokeRefresh(app, token);
-			return reply.status(204).send();
-		},
-	);
+  t.post(
+    "/logout",
+    {
+      schema: {
+        description: "Revoke refresh token",
+        body: logoutBodySchema,
+        response: { 204: { type: "null" } },
+      },
+    },
+    async (request, reply) => {
+      const { refreshToken: token } = request.body;
+      if (token) await authService.revokeRefresh(app, token);
+      return reply.status(204).send();
+    },
+  );
 
-	t.get(
-		"/me",
-		{
-			onRequest: [requireJwt],
-			schema: {
-				description: "Current user (requires Bearer token)",
-				response: {
-					200: authUserSchema,
-					401: errorResponseSchema,
-					404: errorResponseSchema,
-					500: errorResponseSchema,
-				},
-			},
-		},
-		async (request, reply) => {
-			const userId = authService.parseUserIdFromSub(request.user.sub);
-			const user = await app.db.query.users.findFirst({
-				where: eq(users.id, userId),
-				columns: {
-					id: true,
-					email: true,
-					name: true,
-					createdAt: true,
-					profilePictureKey: true,
-				},
-			});
-			if (!user) throw new AppError(404, ERRORS.USER_NOT_FOUND);
+  t.get(
+    "/me",
+    {
+      onRequest: [requireJwt],
+      schema: {
+        description: "Current user (requires Bearer token)",
+        response: {
+          200: authUserSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+          500: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const userId = authService.parseUserIdFromSub(request.user.sub);
+      const user = await app.db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: {
+          id: true,
+          email: true,
+          name: true,
+          createdAt: true,
+          profilePictureKey: true,
+        },
+      });
+      if (!user) throw new AppError(404, ERRORS.USER_NOT_FOUND);
 
-			const publicUrl = app.config.R2_PUBLIC_URL?.replace(/\/$/, "") || "";
-			const profilePictureUrl = user.profilePictureKey
-				? `${publicUrl}/${user.profilePictureKey}`
-				: null;
+      const publicUrl = app.config.R2_PUBLIC_URL?.replace(/\/$/, "") || "";
+      const profilePictureUrl = user.profilePictureKey
+        ? `${publicUrl}/${user.profilePictureKey}`
+        : null;
 
-			return reply.send({
-				id: user.id,
-				email: user.email,
-				name: user.name,
-				createdAt: user.createdAt.toISOString(),
-				profilePictureUrl,
-			});
-		},
-	);
+      return reply.send({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        createdAt: user.createdAt.toISOString(),
+        profilePictureUrl,
+      });
+    },
+  );
 
-	t.patch(
-		"/profile/picture",
-		{
-			onRequest: [requireJwt],
-			schema: {
-				description: "Upload a profile picture",
-				response: {
-					200: z.object({ url: z.string().url() }),
-					400: errorResponseSchema,
-					401: errorResponseSchema,
-					500: errorResponseSchema,
-					503: errorResponseSchema,
-				},
-			},
-		},
-		async (request, reply) => {
-			const { storage, db } = app;
-			if (!storage) {
-				console.warn("[AuthRoutes] Storage service not configured");
-				throw new AppError(
-					503,
-					"Storage service is not configured. Check R2 environment variables.",
-					"STORAGE_NOT_CONFIGURED",
-				);
-			}
+  t.patch(
+    "/profile/picture",
+    {
+      onRequest: [requireJwt],
+      schema: {
+        description: "Upload a profile picture",
+        response: {
+          200: z.object({ url: z.string().url() }),
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          500: errorResponseSchema,
+          503: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { storage, db } = app;
+      if (!storage) {
+        console.warn("[AuthRoutes] Storage service not configured");
+        throw new AppError(
+          503,
+          "Storage service is not configured. Check R2 environment variables.",
+          "STORAGE_NOT_CONFIGURED",
+        );
+      }
 
-			const userId = authService.parseUserIdFromSub(request.user.sub);
-			const data = await request.file();
-			if (!data) {
-				throw new AppError(400, "No file uploaded", "INVALID_INPUT");
-			}
+      const userId = authService.parseUserIdFromSub(request.user.sub);
+      const data = await request.file();
+      if (!data) {
+        throw new AppError(400, "No file uploaded", "INVALID_INPUT");
+      }
 
-			const buffer = await data.toBuffer();
-			const extension = data.filename.split(".").pop() || "jpg";
-			const key = `profile-pictures/${userId}-${Date.now()}.${extension}`;
+      const buffer = await data.toBuffer();
+      const extension = data.filename.split(".").pop() || "jpg";
+      const key = `profile-pictures/${userId}-${Date.now()}.${extension}`;
 
-			await storage.uploadFile({
-				key,
-				body: buffer,
-				contentType: data.mimetype,
-			});
+      await storage.uploadFile({
+        key,
+        body: buffer,
+        contentType: data.mimetype,
+      });
 
-			await db
-				.update(users)
-				.set({ profilePictureKey: key })
-				.where(eq(users.id, userId));
-			const publicUrl = app.config.R2_PUBLIC_URL?.replace(/\/$/, "") || "";
-			return reply.send({ url: `${publicUrl}/${key}` });
-		},
-	);
+      await db
+        .update(users)
+        .set({ profilePictureKey: key })
+        .where(eq(users.id, userId));
+      const publicUrl = app.config.R2_PUBLIC_URL?.replace(/\/$/, "") || "";
+      return reply.send({ url: `${publicUrl}/${key}` });
+    },
+  );
 
-	t.patch(
-		"/profile",
-		{
-			onRequest: [requireJwt],
-			schema: {
-				description: "Update profile information",
-				body: z.object({
-					name: z.string().max(255).optional(),
-				}),
-				response: {
-					200: authUserSchema,
-					400: errorResponseSchema,
-					401: errorResponseSchema,
-					404: errorResponseSchema,
-					500: errorResponseSchema,
-				},
-			},
-		},
-		async (request, reply) => {
-			const { db } = app;
-			const userId = authService.parseUserIdFromSub(request.user.sub);
-			const { name } = request.body;
+  t.patch(
+    "/profile",
+    {
+      onRequest: [requireJwt],
+      schema: {
+        description: "Update profile information",
+        body: z.object({
+          name: z.string().max(255).optional(),
+        }),
+        response: {
+          200: authUserSchema,
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+          404: errorResponseSchema,
+          500: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const { db } = app;
+      const userId = authService.parseUserIdFromSub(request.user.sub);
+      const { name } = request.body;
 
-			const [updatedUser] = await db
-				.update(users)
-				.set({ name })
-				.where(eq(users.id, userId))
-				.returning();
+      const [updatedUser] = await db
+        .update(users)
+        .set({ name })
+        .where(eq(users.id, userId))
+        .returning();
 
-			if (!updatedUser) throw new AppError(404, ERRORS.USER_NOT_FOUND);
+      if (!updatedUser) throw new AppError(404, ERRORS.USER_NOT_FOUND);
 
-			const publicUrl = app.config.R2_PUBLIC_URL?.replace(/\/$/, "") || "";
-			const profilePictureUrl = updatedUser.profilePictureKey
-				? `${publicUrl}/${updatedUser.profilePictureKey}`
-				: null;
+      const publicUrl = app.config.R2_PUBLIC_URL?.replace(/\/$/, "") || "";
+      const profilePictureUrl = updatedUser.profilePictureKey
+        ? `${publicUrl}/${updatedUser.profilePictureKey}`
+        : null;
 
-			return reply.send({
-				id: updatedUser.id,
-				email: updatedUser.email,
-				name: updatedUser.name,
-				createdAt: updatedUser.createdAt.toISOString(),
-				profilePictureUrl,
-			});
-		},
-	);
+      return reply.send({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        createdAt: updatedUser.createdAt.toISOString(),
+        profilePictureUrl,
+      });
+    },
+  );
 };

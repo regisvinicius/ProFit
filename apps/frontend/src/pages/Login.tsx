@@ -5,74 +5,74 @@ import { useAuth } from "../contexts/AuthContext";
 import { useI18n } from "../contexts/I18nContext";
 
 export function Login() {
-	const navigate = useNavigate();
-	const { setAuth } = useAuth();
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(false);
-	const { t } = useI18n();
+  const navigate = useNavigate();
+  const { setAuth } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { t } = useI18n();
 
-	async function handleSubmit(e: React.FormEvent) {
-		e.preventDefault();
-		setError(null);
-		setLoading(true);
-		try {
-			const res = await login({ email, password });
-			setAuth(res.user, res.accessToken, res.refreshToken);
-			navigate({ to: "/" });
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Erro ao fazer login");
-		} finally {
-			setLoading(false);
-		}
-	}
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await login({ email, password });
+      setAuth(res.user, res.accessToken, res.refreshToken);
+      navigate({ to: "/" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao fazer login");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-	return (
-		<div className="min-h-screen flex items-center justify-center p-4">
-			<form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-				<h1 className="text-xl font-semibold">Login</h1>
-				{error && (
-					<p className="text-red-600 text-sm" role="alert">
-						{error}
-					</p>
-				)}
-				<div>
-					<label htmlFor="email" className="block text-sm mb-1">
-						{t("email")}
-					</label>
-					<input
-						id="email"
-						type="email"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						required
-						className="w-full border rounded px-3 py-2"
-						autoComplete="email"
-					/>
-				</div>
-				<div>
-					<label htmlFor="password" className="block text-sm mb-1">
-						{t("password")}
-					</label>
-					<input
-						id="password"
-						type="password"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						required
-						className="w-full border rounded px-3 py-2"
-						autoComplete="current-password"
-					/>
-				</div>
-				<button
-					type="submit"
-					disabled={loading}
-					className="w-full bg-gray-800 text-white py-2 rounded disabled:opacity-50"
-				>
-					{loading ? t("entering") : t("enter")}
-				</button>
-			</form>
-		</div>
-	);
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
+        <h1 className="text-xl font-semibold">Login</h1>
+        {error && (
+          <p className="text-red-600 text-sm" role="alert">
+            {error}
+          </p>
+        )}
+        <div>
+          <label htmlFor="email" className="block text-sm mb-1">
+            {t("email")}
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full border rounded px-3 py-2"
+            autoComplete="email"
+          />
+        </div>
+        <div>
+          <label htmlFor="password" className="block text-sm mb-1">
+            {t("password")}
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full border rounded px-3 py-2"
+            autoComplete="current-password"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-gray-800 text-white py-2 rounded disabled:opacity-50"
+        >
+          {loading ? t("entering") : t("enter")}
+        </button>
+      </form>
+    </div>
+  );
 }
