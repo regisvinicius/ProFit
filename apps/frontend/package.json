@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "typecheck": "tsc --noEmit",
     "build": "pnpm run typecheck && vite build",
     "preview": "vite preview",
