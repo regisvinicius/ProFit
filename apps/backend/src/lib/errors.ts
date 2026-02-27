@@ -1,66 +1,66 @@
 export class AppError extends Error {
-	constructor(
-		public readonly statusCode: number,
-		message: string,
-		public readonly code?: string,
-	) {
-		super(message);
-		this.name = "AppError";
-		Object.setPrototypeOf(this, AppError.prototype);
-	}
+  constructor(
+    public readonly statusCode: number,
+    message: string,
+    public readonly code?: string,
+  ) {
+    super(message);
+    this.name = "AppError";
+    Object.setPrototypeOf(this, AppError.prototype);
+  }
 }
 
 export function isAppError(err: unknown): err is AppError {
-	return err instanceof AppError;
+  return err instanceof AppError;
 }
 
 export function isUniqueViolation(err: unknown): boolean {
-	return (err as { code?: string })?.code === "23505";
+  return (err as { code?: string })?.code === "23505";
 }
 
 export const ERRORS = {
-	AUTH_NOT_CONFIGURED:
-		"Auth not configured. Set JWT_SECRET and DATABASE_URL in .env",
-	EMAIL_ALREADY_REGISTERED: "Email already registered",
-	INVALID_EMAIL_OR_PASSWORD: "Invalid email or password",
-	REFRESH_TOKEN_REQUIRED: "refreshToken required in body",
-	INVALID_OR_EXPIRED_REFRESH_TOKEN: "Invalid or expired refresh token",
-	JWT_SECRET_NOT_CONFIGURED: "JWT_SECRET not configured",
-	JWT_NOT_CONFIGURED: "JWT not configured",
-	INVALID_TOKEN: "Invalid token",
-	USER_NOT_FOUND: "User not found",
-	INTERNAL: "Internal server error",
-	INSERT_FAILED: "Insert failed",
-	INVALID_INPUT: "Invalid input",
+  AUTH_NOT_CONFIGURED:
+    "Auth not configured. Set JWT_SECRET and DATABASE_URL in .env",
+  EMAIL_ALREADY_REGISTERED: "Email already registered",
+  INVALID_EMAIL_OR_PASSWORD: "Invalid email or password",
+  REFRESH_TOKEN_REQUIRED: "refreshToken required in body",
+  INVALID_OR_EXPIRED_REFRESH_TOKEN: "Invalid or expired refresh token",
+  JWT_SECRET_NOT_CONFIGURED: "JWT_SECRET not configured",
+  JWT_NOT_CONFIGURED: "JWT not configured",
+  INVALID_TOKEN: "Invalid token",
+  USER_NOT_FOUND: "User not found",
+  INTERNAL: "Internal server error",
+  INSERT_FAILED: "Insert failed",
+  INVALID_INPUT: "Invalid input",
 } as const;
 
 type FastifyError = Error & { statusCode?: number; validation?: unknown };
 
 export function createErrorHandler() {
-	return function errorHandler(
-		error: unknown,
-		_request: import("fastify").FastifyRequest,
-		reply: import("fastify").FastifyReply,
-	): void {
-		if (isAppError(error)) {
-			const body: { error: string; code?: string } = { error: error.message };
-			if (error.code) body.code = error.code;
-			void reply.status(error.statusCode).send(body);
-			return;
-		}
-		const statusCode = (error as FastifyError)?.statusCode;
-		if (
-			typeof statusCode === "number" &&
-			statusCode >= 400 &&
-			statusCode < 500
-		) {
-			const message = error instanceof Error ? error.message : "Bad request";
-			void reply.status(statusCode).send({ error: message });
-			return;
-		}
-		if (error instanceof Error) {
-			reply.log?.error(error, error.message);
-		}
-		void reply.status(500).send({ error: ERRORS.INTERNAL });
-	};
+  return function errorHandler(
+    error: unknown,
+    _request: import("fastify").FastifyRequest,
+    reply: import("fastify").FastifyReply,
+  ): void {
+    if (isAppError(error)) {
+      const body: { error: string; code?: string } = { error: error.message };
+      if (error.code) body.code = error.code;
+      void reply.status(error.statusCode).send(body);
+      return;
+    }
+    const statusCode = (error as FastifyError)?.statusCode;
+    if (
+      typeof statusCode === "number" &&
+      statusCode >= 400 &&
+      statusCode < 500
+    ) {
+      const message = error instanceof Error ? error.message : "Bad request";
+      void reply.status(statusCode).send({ error: message });
+      return;
+    }
+    if (error instanceof Error) {
+      reply.log?.error(error, error.message);
+    }
+    void reply.status(500).send({ error: ERRORS.INTERNAL });
+  };
 }

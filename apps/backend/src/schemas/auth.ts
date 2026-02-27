@@ -1,35 +1,35 @@
 import { z } from "zod";
 
 export const registerBodySchema = z.object({
-	email: z.string().email(),
-	password: z.string().min(8),
+  email: z.string().email(),
+  password: z.string().min(8),
 });
 
 export const loginBodySchema = z.object({
-	email: z.string().email(),
-	password: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(1),
 });
 
 export const refreshBodySchema = z.object({
-	refreshToken: z.string().min(1),
+  refreshToken: z.string().min(1),
 });
 
 export const logoutBodySchema = z.object({
-	refreshToken: z.string().min(1).optional(),
+  refreshToken: z.string().min(1).optional(),
 });
 
 export const authUserSchema = z.object({
-	id: z.number(),
-	email: z.string(),
-	name: z.string().max(255).optional().nullable(),
-	createdAt: z.string(),
-	profilePictureUrl: z.string().url().max(512).optional().nullable(),
+  id: z.number(),
+  email: z.string(),
+  name: z.string().max(255).optional().nullable(),
+  createdAt: z.string(),
+  profilePictureUrl: z.string().url().max(512).optional().nullable(),
 });
 
 export const authResponseSchema = z.object({
-	accessToken: z.string(),
-	refreshToken: z.string(),
-	user: authUserSchema,
+  accessToken: z.string(),
+  refreshToken: z.string(),
+  user: authUserSchema,
 });
 
 export type RegisterBody = z.infer<typeof registerBodySchema>;

@@ -13,8 +13,8 @@ if (!url) throw new Error("DATABASE_URL is required");
 
 const pool = new Pool({ connectionString: url });
 if (!(await tableExists(pool, "users"))) {
-	await runMigrations(pool);
-	console.log("Migrations applied.");
+  await runMigrations(pool);
+  console.log("Migrations applied.");
 }
 await runSeed(pool);
 await pool.end();

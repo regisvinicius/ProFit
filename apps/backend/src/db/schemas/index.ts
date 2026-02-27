@@ -16,12 +16,12 @@ import { sales } from "./sales.js";
 import { users } from "./users.js";
 
 export const schemaForDb = {
-	users,
-	refreshTokens,
-	channels,
-	products,
-	feeRules,
-	sales,
-	costs,
+  users,
+  refreshTokens,
+  channels,
+  products,
+  feeRules,
+  sales,
+  costs,
 };
 export type DatabaseSchema = typeof schemaForDb;

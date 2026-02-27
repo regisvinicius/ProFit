@@ -13,7 +13,7 @@ const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is required");
 
 console.warn(
-	`[DB RESET] Database reset script started by PID ${process.pid} at ${new Date().toISOString()}`,
+  `[DB RESET] Database reset script started by PID ${process.pid} at ${new Date().toISOString()}`,
 );
 console.warn(`[DB RESET] Target: ${url.split("@").pop()}`);
 const pool = new Pool({ connectionString: url });
