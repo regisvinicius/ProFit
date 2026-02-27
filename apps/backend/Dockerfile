@@ -29,4 +29,4 @@ WORKDIR /app/apps/backend
 EXPOSE 3000
 ENV NODE_ENV=development
 
-CMD ["sh", "-c", "pnpm db:migrate && pnpm db:seed && node dist/index.js"]
+CMD ["sh", "-c", "node dist/db/migrate.js && node dist/db/seed.js && node dist/index.js"]
