@@ -118,7 +118,9 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Push Docker Image backend
+        id: push-backend
         run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEFAULT_ALIAS }}/${{ vars.ECR_BACKEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
 
       - name: Push Docker Image frontend
+        id: push-frontend
         run: docker push ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEFAULT_ALIAS }}/${{ vars.ECR_FRONTEND_REPOSITORY }}:${{ steps.generate-tag.outputs.TAG }}
