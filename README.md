@@ -1,181 +1,220 @@
-ProfitOS
-Profit Intelligence for Small E-commerce Sellers
+ProfitOS — Profit Intelligence for Small E-commerce Sellers
 
-ProfitOS is a Docker-first web application created to help e-commerce sellers
-understand their real net profit, identify products that appear profitable but
-actually generate losses, and make pricing decisions based on data — not guesswork.
+ProfitOS is a Docker-first web application designed to help small and mid-sized e-commerce sellers understand their real net profit, identify products that appear profitable but actually generate losses, and make pricing decisions based on data rather than intuition.
 
-This project was developed as a senior-level portfolio project, with a strong focus
-on modern architecture, developer experience (DX), automation, and software
-engineering best practices.
+This project was built as a senior-level portfolio application, with a strong emphasis on modern architecture, developer experience (DX), automation, and sound engineering practices.
 
-==================================================
-PROJECT GOALS
-==================================================
+Project Goals
 
-- Demonstrate proficiency in modern full-stack architecture
-- Showcase practical use of Docker, CI/CD, and Cloud infrastructure
-- Build a realistic and potentially sellable product
-- Prioritize conscious technical decisions over feature quantity
+Demonstrate proficiency in modern full-stack architecture
 
-==================================================
-ARCHITECTURE OVERVIEW
-==================================================
+Showcase practical use of Docker, CI/CD, and cloud infrastructure
 
-The application follows a fully containerized architecture, with isolated services
-communicating through the Docker network.
+Build a realistic, potentially sellable product
 
-┌─────────────┐      HTTP       ┌──────────────┐
-│  Frontend   │ ─────────────▶ │   Backend    │
-│ React/Vite  │                │  Fastify API │
-└─────────────┘                └───────┬──────┘
-                                        │
-                                        │ SQL
-                                        ▼
-                                ┌──────────────┐
-                                │ PostgreSQL   │
-                                │   Database   │
-                                └──────────────┘
+Prioritize thoughtful technical decisions over feature quantity
 
-All services run inside Docker containers and are orchestrated using Docker Compose.
+Architecture Overview
 
-==================================================
-COMPONENTS
-==================================================
+The application follows a fully containerized architecture. All services run in isolated Docker containers and communicate through the internal Docker network.
 
-FRONTEND
-- React + Vite
-- UI focused on data clarity and decision-making
-- Communication via REST API
-- Styling with Tailwind CSS + shadcn/ui
-- Linting and formatting with Biome
+Frontend (React/Vite)
+        │
+        ▼
+Backend (Fastify API)
+        │
+        ▼
+   PostgreSQL
 
-BACKEND
-- Node.js + Fastify + TypeScript
-- REST API
-- Modular architecture (routes, services, domain)
-- Isolated domain layer for financial calculations
-- Configuration via environment variables
-- Health check endpoint
-- Data validation
-- Linting and formatting with Biome
+The backend is fully stateless. All persistence is handled by PostgreSQL and external object storage (Cloudflare R2).
 
-DATABASE
-- PostgreSQL
-- Running in a dedicated container
-- Data persistence via Docker volumes
-- Versioned migrations
-- Communication through Docker internal network
+Docker Compose orchestrates all services, ensuring environment parity between development and production.
 
-==================================================
-INFRASTRUCTURE (DOCKER-FIRST)
-==================================================
+Components
+Frontend
 
-The project is designed to run the same way in:
+React + Vite
 
-- Local development environments
-- Production environments (Oracle Cloud)
+UI focused on clarity and decision-making
+
+REST-based communication with the backend
+
+Tailwind CSS + shadcn/ui
+
+Biome for linting and formatting
+
+Backend
+
+Node.js + Fastify + TypeScript
+
+Modular architecture (routes, services, domain)
+
+Strict TypeScript configuration
+
+Isolated financial calculation engine
+
+Environment-based configuration
+
+Health check endpoint
+
+Data validation
+
+Biome for linting and formatting
+
+The domain layer is intentionally isolated from transport and persistence concerns, enabling clear separation of business logic from infrastructure.
+
+Database
+
+PostgreSQL running in a dedicated container
+
+Persistent data storage via Docker volumes
+
+Versioned migrations
+
+Internal Docker network communication
+
+Infrastructure (Docker-First Approach)
+
+The project was designed to run identically in:
+
+Local development environments
+
+Production environments (Oracle Cloud Always Free)
 
 No dependencies are installed directly on the host machine other than:
-- Docker
-- Docker Compose
+
+Docker
+
+Docker Compose
 
 Main containers:
-- frontend
-- backend
-- db
 
-==================================================
-CLOUD & DEPLOYMENT
-==================================================
+frontend
+
+backend
+
+db
+
+Why Docker-First?
+
+Ensures environment parity between local and production
+
+Eliminates “works on my machine” issues
+
+Improves reproducibility
+
+Encourages infrastructure awareness from day one
+
+Cloud & Deployment
 
 Oracle Cloud Always Free
-- Linux VM (Ubuntu)
-- Docker + Docker Compose
-- Zero-cost infrastructure
-- Simple, reproducible, and well-documented setup
 
-AUTOMATED DEPLOYMENT (PREPARED)
-- GitHub Actions
-- Pipeline triggered by pushes to the main branch
-- Build and deploy via SSH
-- docker compose up -d --build
+Ubuntu Linux VM
 
-NOTE:
-The production environment is fully prepared, but production deployment will not
-be executed initially. The primary focus of the project is architecture, automation,
-and technical quality, keeping production ready for future use.
+Docker + Docker Compose
 
-==================================================
-AUTHENTICATION
-==================================================
+Zero-cost infrastructure
 
-- JWT + Refresh Token
-- API-based authentication
-- Frontend consumes tokens via HTTP
-- Environment-based configuration
-- The user created by `pnpm db:seed` (test@gmail.com) is for local/testing only and must not be used in production.
+Reproducible and documented deployment
 
-==================================================
-BUSINESS DOMAIN (CORE)
-==================================================
+Automated Deployment (Prepared)
+
+GitHub Actions pipeline
+
+Triggered on pushes to main
+
+Remote deployment via SSH
+
+docker compose up -d --build
+
+The production environment is fully prepared, though the primary focus of this project remains architecture, automation, and technical quality. Deployment is production-ready but intentionally staged for future activation.
+
+Authentication
+
+JWT + Refresh Token
+
+API-based authentication
+
+Token consumption via HTTP on the frontend
+
+Environment-driven configuration
+
+The seeded user (test@gmail.com) is strictly for local development and must not be used in production environments.
+
+Business Domain (Core)
 
 ProfitOS is not an ERP system.
 
-The main focus of the application is to provide profit intelligence and
-decision-support capabilities.
+Its primary goal is to provide profit intelligence and decision-support capabilities.
 
-Core domain responsibilities:
-- Real net profit calculation
-- Margin analysis
-- Price simulation
-- Identification of low or negative profitability products
+Core responsibilities:
 
-Main entities:
-- Product
-- Sale
-- Cost
-- Channel
-- FeeRule
+Real net profit calculation
 
-The financial calculation engine is isolated from the rest of the application.
+Margin analysis
 
-==================================================
-CODE QUALITY
-==================================================
+Price simulation
 
-- Biome for linting and formatting
-- Strict TypeScript configuration
-- Consistent standards across frontend and backend
-- Automated development scripts
+Identification of low or negative profitability products
 
-==================================================
-TESTING (PLANNED)
-==================================================
+Main domain entities:
 
-- Domain-level tests (financial calculations)
-- API tests (critical routes)
-- Tests focused on business logic, not only UI
+Product
 
-==================================================
-ROADMAP (MVP)
-==================================================
+Sale
 
-1. Docker infrastructure up and running
-2. Backend with health check endpoint
-3. Frontend connected to the API
-4. Authentication
-5. Product management
-6. Profit calculation engine
-7. Basic reports
-8. Automated deployment pipeline
+Cost
 
-==================================================
-KEY TECHNICAL DECISIONS
-==================================================
+Channel
 
-- Docker from the very first commit
-- Fastify for performance, strong typing, and modern ecosystem
-- Biome for simplicity and excellent developer experience
-- Oracle Cloud Always Free for zero-cost yet production-ready infrastructure
-- Focus on domain modeling and business decisions rather than generic CRUD
+FeeRule
+
+The financial calculation engine is fully isolated from transport, infrastructure, and persistence layers.
+
+Code Quality
+
+Biome for linting and formatting
+
+Strict TypeScript configuration
+
+Consistent standards across frontend and backend
+
+Automated development scripts
+
+Testing (Planned)
+
+Domain-level tests (financial calculations)
+
+API-level tests (critical routes)
+
+Tests focused on business logic rather than UI rendering
+
+Roadmap (MVP)
+
+Docker infrastructure fully operational
+
+Backend with health check endpoint
+
+Frontend connected to the API
+
+Authentication system
+
+Product management
+
+Profit calculation engine
+
+Basic reporting
+
+Automated deployment pipeline
+
+Key Technical Decisions
+
+Docker from the first commit
+
+Fastify for performance, type safety, and ecosystem maturity
+
+Biome for simplicity and developer experience
+
+Oracle Cloud Always Free for zero-cost, production-capable infrastructure
+
+Strong emphasis on domain modeling over generic CRUD implementations
